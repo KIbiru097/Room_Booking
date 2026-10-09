@@ -30,7 +30,12 @@ const updateTripSchema = z.object({
 const createTripItemSchema = z.object({
   dayDate: dateOnly,
   startTime: timeOnly.optional(),
-  durationMin: z.number().int().min(1).max(24 * 60).optional(),
+  durationMin: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 60)
+    .optional(),
   itemType: z.enum(['PLACE', 'BOOKING', 'CUSTOM']),
   placeId: z.string().min(1).optional(),
   bookingId: z.string().min(1).optional(),
@@ -46,7 +51,13 @@ const createTripItemSchema = z.object({
 const updateTripItemSchema = z.object({
   dayDate: dateOnly.optional(),
   startTime: timeOnly.nullable().optional(),
-  durationMin: z.number().int().min(1).max(24 * 60).nullable().optional(),
+  durationMin: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 60)
+    .nullable()
+    .optional(),
   title: z.string().trim().min(2).max(160).optional(),
   notes: z.string().max(5000).nullable().optional(),
   costAmount: z.number().nonnegative().nullable().optional(),
@@ -57,9 +68,12 @@ const updateTripItemSchema = z.object({
 
 const buildDaySchema = z.object({
   dayDate: dateOnly,
-  duration: z.enum(['2_HOURS', 'HALF_DAY', 'FULL_DAY']).default('HALF_DAY'),
+  duration: z
+    .enum(['2_HOURS', 'HALF_DAY', 'FULL_DAY', 'MULTIPLE_DAYS'])
+    .default('HALF_DAY'),
   startTime: timeOnly.default('09:00'),
-  interests: z.array(z.string()).optional(),
+  cityId: z.string().min(1).optional(),
+  interests: z.array(z.string().min(1).max(40)).max(10).optional(),
 });
 
 export class TripIdParamsDto extends createZodDto(tripIdSchema) {}
@@ -69,4 +83,3 @@ export class UpdateTripDto extends createZodDto(updateTripSchema) {}
 export class CreateTripItemDto extends createZodDto(createTripItemSchema) {}
 export class UpdateTripItemDto extends createZodDto(updateTripItemSchema) {}
 export class BuildDayDto extends createZodDto(buildDaySchema) {}
-

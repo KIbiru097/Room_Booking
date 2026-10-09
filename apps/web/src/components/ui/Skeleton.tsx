@@ -1,19 +1,19 @@
-import * as React from 'react'
+import * as React from "react"
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'text' | 'circular' | 'rectangular' | 'rounded'
+  variant?: "text" | "circular" | "rectangular" | "rounded"
 }
 
 export function Skeleton({
-  className = '',
-  variant = 'rounded',
+  className = "",
+  variant = "rounded",
   ...props
 }: SkeletonProps) {
   const variantStyles = {
-    text: 'h-4 w-full rounded',
-    circular: 'rounded-full',
-    rectangular: 'rounded-none',
-    rounded: 'rounded-2xl',
+    text: "h-4 w-full rounded",
+    circular: "rounded-full",
+    rectangular: "rounded-none",
+    rounded: "rounded-2xl",
   }[variant]
 
   return (

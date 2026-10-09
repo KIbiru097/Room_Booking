@@ -3,7 +3,7 @@ export interface User {
   email: string
   fullName: string
   phone?: string | null
-  role: 'CUSTOMER' | 'STAFF' | 'MANAGER' | 'ADMIN'
+  role: "CUSTOMER" | "STAFF" | "MANAGER" | "ADMIN"
   isActive: boolean
   emailVerified?: boolean
   emailVerifiedAt?: string | null
@@ -31,7 +31,7 @@ export interface HotelSummary {
   name: string
   description: string
   address: string
-  city: { id: string; name: string; country: { name: string } }
+  city: { id: string ;name: string ;country: { name: string } }
   starRating: number
   primaryImageUrl: string | null
   minPricePerNight: number | null
@@ -40,15 +40,16 @@ export interface HotelSummary {
   amenities: string[]
 }
 
-export interface Hotel extends Omit<HotelSummary, 'primaryImageUrl' | 'minPricePerNight' | 'amenities'> {
-  status: 'PENDING_APPROVAL' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED' | 'INACTIVE' | 'PENDING'
+export interface Hotel
+  extends Omit<HotelSummary, "primaryImageUrl" | "minPricePerNight" | "amenities"> {
+  status: "PENDING_APPROVAL" | "ACTIVE" | "SUSPENDED" | "REJECTED" | "INACTIVE" | "PENDING"
   lat: number | null
   lng: number | null
   images: HotelImage[]
   amenities: string[]
   rooms: Room[]
   managerId?: string | null
-  manager?: { id: string; fullName: string; email: string } | null
+  manager?: { id: string ;fullName: string ;email: string } | null
   createdAt: string
   updatedAt: string
 }
@@ -67,7 +68,7 @@ export interface Room {
   beds: number
   bathroom: number
   basePrice: number | string
-  status: 'AVAILABLE' | 'UNAVAILABLE' | 'MAINTENANCE' | 'CLEANING'
+  status: "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE" | "CLEANING"
   description?: string | null
   primaryImageUrl?: string | null
   images?: HotelImage[]
@@ -89,11 +90,11 @@ export interface RoomAvailability extends Room {
   availableAcrossRange: boolean
   availableNights: number
   totalNights: number
-  priceRange: { min: number; max: number } | null
+  priceRange: { min: number ;max: number } | null
 }
 
 export interface BookingQuote {
-  hotel: { id: string; name: string }
+  hotel: { id: string ;name: string }
   checkIn: string
   checkOut: string
   nights: number
@@ -119,10 +120,10 @@ export interface Booking {
   id: string
   userId: string
   hotelId: string
-  hotel?: { id: string; name: string; address?: string; images?: HotelImage[] }
+  hotel?: { id: string ;name: string ;address?: string ;images?: HotelImage[] }
   checkIn: string
   checkOut: string
-  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED' | 'REJECTED'
+  status: "PENDING" | "CONFIRMED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED" | "REJECTED"
   totalPrice: number | string
   createdAt: string
   details?: BookingDetail[]
@@ -143,11 +144,11 @@ export interface Payment {
   bookingId: string
   method: string
   amount: number | string
-  status: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED'
+  status: "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED"
   providerRef?: string | null
   invoiceUrl?: string | null
   createdAt: string
-  booking?: { id: string; hotel?: { id: string; name: string } }
+  booking?: { id: string ;hotel?: { id: string ;name: string } }
 }
 
 export interface Review {
@@ -161,10 +162,15 @@ export interface Review {
   response?: string | null
   respondedAt?: string | null
   respondedById?: string | null
-  respondedBy?: { id: string; fullName: string; role: string } | null
-  booking?: { id: string; bookingRef?: string; checkIn?: string; checkOut?: string } | null
+  respondedBy?: { id: string ;fullName: string ;role: string } | null
+  booking?: {
+    id: string
+    bookingRef?: string
+    checkIn?: string
+    checkOut?: string
+  } | null
   createdAt: string
-  hotel?: { id: string; name: string; address?: string }
+  hotel?: { id: string ;name: string ;address?: string }
 }
 
 export interface ManagerReviewsResponse extends Paginated<Review> {
@@ -176,8 +182,7 @@ export interface ManagerReviewsResponse extends Paginated<Review> {
   }
 }
 
-
-export interface FavoriteHotel extends Omit<HotelSummary, 'amenities'> {}
+export interface FavoriteHotel extends Omit<HotelSummary, "amenities"> {}
 
 export interface Notification {
   id: string
@@ -190,11 +195,15 @@ export interface Notification {
   createdAt: string
 }
 
-export interface BookingsResponse { data: Booking[] }
-export interface ReviewsResponse extends Paginated<Review> {
-  summary: { averageRating: number | null; reviewCount: number }
+export interface BookingsResponse {
+  data: Booking[]
 }
-export interface NotificationsResponse extends Paginated<Notification> { unreadCount: number }
+export interface ReviewsResponse extends Paginated<Review> {
+  summary: { averageRating: number | null ;reviewCount: number }
+}
+export interface NotificationsResponse extends Paginated<Notification> {
+  unreadCount: number
+}
 
 export interface HotelPolicy {
   id: string
@@ -289,7 +298,7 @@ export interface DailyBookingTrendItem {
 export interface Coupon {
   id: string
   code: string
-  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FIXED'
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT" | "FIXED"
   value?: number | string
   discountValue?: number
   validFrom?: string
@@ -317,11 +326,11 @@ export interface PlatformSetting {
 export interface ContactThread {
   id: string
   hotelId: string
-  hotel?: { id: string; name: string }
+  hotel?: { id: string ;name: string }
   userId: string
-  user?: { id: string; fullName: string; email: string }
+  user?: { id: string ;fullName: string ;email: string }
   subject: string
-  status: 'OPEN' | 'CLOSED'
+  status: "OPEN" | "CLOSED"
   messages: ContactMessage[]
   createdAt: string
   updatedAt: string
@@ -339,9 +348,9 @@ export interface ContactMessage {
 export interface StayRequest {
   id: string
   bookingId: string
-  type: 'EARLY_CHECK_IN' | 'LATE_CHECK_OUT'
+  type: "EARLY_CHECK_IN" | "LATE_CHECK_OUT"
   requestedTime: string
-  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  status: "PENDING" | "APPROVED" | "REJECTED"
   fee?: number | null
   note?: string | null
   createdAt: string
@@ -365,4 +374,22 @@ export interface SessionItem {
   lastUsedAt?: string | null
   createdAt: string
   isCurrent?: boolean
+}
+
+export interface Dispute {
+  id: string
+  bookingId: string
+  booking?: {
+    id: string
+    bookingRef?: string
+    hotel?: { name: string }
+    room?: { name: string ;type: string }
+  }
+  userId: string
+  user?: { id: string ;fullName: string ;email: string }
+  reason: string
+  status: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "CLOSED"
+  resolution?: string | null
+  createdAt: string
+  updatedAt: string
 }

@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { Timer, AlertTriangle, RefreshCw } from 'lucide-react'
-import { useLanguage } from '@/lib/i18n'
+import { useEffect, useState } from "react"
+import { Timer, AlertTriangle, RefreshCw } from "lucide-react"
+import { useLanguage } from "@/lib/i18n"
 
 interface CountdownTimerProps {
   initialSeconds: number
@@ -55,20 +55,20 @@ export function CountdownTimer({
       aria-live="polite"
       className={`rounded-2xl p-4 transition-all border flex flex-col sm:flex-row items-center justify-between gap-3 ${
         isExpired
-          ? 'bg-rose-50 border-rose-200 text-rose-950'
+          ? "bg-rose-50 border-rose-200 text-rose-950"
           : isUrgent
-            ? 'bg-amber-50 border-amber-300 text-amber-950 animate-pulse'
-            : 'bg-[#F8FAFC] border-[#D4AF37]/30 text-[#0F2942]'
+            ? "bg-amber-50 border-amber-300 text-amber-950 animate-pulse"
+            : "bg-[#f3efe5] border-[#e4bd55]/30 text-[#0b1528]"
       }`}
     >
       <div className="flex items-center gap-3">
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
             isExpired
-              ? 'bg-rose-100 text-rose-600'
+              ? "bg-rose-100 text-rose-600"
               : isUrgent
-                ? 'bg-amber-100 text-amber-600'
-                : 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                ? "bg-amber-100 text-amber-600"
+                : "bg-[#e4bd55]/10 text-[#e4bd55]"
           }`}
         >
           {isExpired ? (
@@ -80,15 +80,15 @@ export function CountdownTimer({
         <div>
           <div className="font-semibold text-sm">
             {isExpired
-              ? t('hotel', 'roomHoldExpired')
+              ? t("hotel", "roomHoldExpired")
               : isUrgent
-                ? t('hotel', 'holdExpiringSoon')
-                : t('hotel', 'roomLocked')}
+                ? t("hotel", "holdExpiringSoon")
+                : t("hotel", "roomLocked")}
           </div>
           <p className="text-xs opacity-75">
             {isExpired
-              ? t('hotel', 'holdExpiredDescription')
-              : t('hotel', 'roomReservedForYou')}
+              ? t("hotel", "holdExpiredDescription")
+              : t("hotel", "roomReservedForYou")}
           </p>
         </div>
       </div>
@@ -98,11 +98,12 @@ export function CountdownTimer({
           <div
             className={`font-mono text-lg font-bold px-3 py-1.5 rounded-xl border ${
               isUrgent
-                ? 'bg-amber-100 border-amber-300 text-amber-900'
-                : 'bg-white border-[#D4AF37]/20 text-[#0F2942] shadow-sm'
+                ? "bg-amber-100 border-amber-300 text-amber-900"
+                : "bg-white border-[#e4bd55]/20 text-[#0b1528] shadow-sm"
             }`}
           >
-            {String(minutes).padStart(2, '0')}:{String(remainingSeconds).padStart(2, '0')}
+            {String(minutes).padStart(2, "0")}:
+            {String(remainingSeconds).padStart(2, "0")}
           </div>
         ) : onRefresh ? (
           <button
@@ -111,8 +112,10 @@ export function CountdownTimer({
             disabled={isRefreshing}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('hotel', 'recheckHold')}
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            {t("hotel", "recheckHold")}
           </button>
         ) : null}
       </div>

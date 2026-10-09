@@ -7,6 +7,7 @@ import type {
   ContactThread,
   Coupon,
   DailyBookingTrendItem,
+  Dispute,
   FavoriteHotel,
   Hotel,
   HotelPolicy,
@@ -15,7 +16,6 @@ import type {
   HotelSummary,
   ManagerReviewsResponse,
   MonthlyRevenueItem,
-  Notification,
   NotificationsResponse,
   OperationalRoom,
   Paginated,
@@ -81,21 +81,21 @@ export const authApi = {
     fullName: string
     phone?: string
   }) =>
-    api.post<{ user: User; accessToken: string; refreshToken: string }>(
+    api.post<{ user: User ;accessToken: string ;refreshToken: string }>(
       "/auth/register",
       data,
     ),
-  login: (data: { email: string; password: string }) =>
-    api.post<{ user: User; accessToken: string; refreshToken: string }>(
+  login: (data: { email: string ;password: string }) =>
+    api.post<{ user: User ;accessToken: string ;refreshToken: string }>(
       "/auth/login",
       data,
     ),
   forgot: (email: string) =>
     api.post<{ message: string }>("/auth/forgot-password", { email }),
-  resetPassword: (data: { token: string; password: string }) =>
+  resetPassword: (data: { token: string ;password: string }) =>
     api.post<{ message: string }>("/auth/reset-password", data),
   verifyEmail: (token: string) =>
-    api.post<{ message: string; verified?: boolean }>(
+    api.post<{ message: string ;verified?: boolean }>(
       `/auth/verify-email/${encodeURIComponent(token)}`,
     ),
   resendVerification: (email: string) =>
@@ -141,20 +141,18 @@ export const hotelApi = {
   getPolicy: (hotelId: string) =>
     api.get<HotelPolicy>(`/catalog/hotels/${hotelId}/policy`, getAuthToken()),
   countries: () =>
-    api.get<
-      Array<{
-        id: string
-        name: string
-        code: string
-        cities?: Array<{ id: string; name: string }>
-      }>
-    >("/catalog/countries"),
+    api.get<Array<{
+      id: string
+      name: string
+      code: string
+      cities?: Array<{ id: string ;name: string }>
+    }>>("/catalog/countries"),
   cities: (country?: string) =>
-    api.get<Array<{ id: string; name: string }>>(
+    api.get<Array<{ id: string ;name: string }>>(
       `/catalog/cities${query({ country })}`,
     ),
   amenities: () =>
-    api.get<Array<{ id: string; name: string }>>("/catalog/amenities"),
+    api.get<Array<{ id: string ;name: string }>>("/catalog/amenities"),
 }
 
 export const bookingApi = {
@@ -163,7 +161,7 @@ export const bookingApi = {
     roomIds: string[]
     checkIn: string
     checkOut: string
-    guests: { adults: number; children: number }
+    guests: { adults: number ;children: number }
     promoCode?: string
   }) => api.post<BookingQuote>("/bookings/checkout", data, getAuthToken()),
   create: (data: any) => api.post<Booking>("/bookings", data, getAuthToken()),
@@ -178,7 +176,7 @@ export const bookingApi = {
   cancelRooms: (id: string, roomIds: string[]) =>
     api.post(`/bookings/${id}/cancel-rooms`, { roomIds }, getAuthToken()),
   invoiceUrl: (id: string) => `${API_BASE_URL}/bookings/${id}/invoice`,
-  createHold: (data: { roomId: string; checkIn: string; checkOut: string }) =>
+  createHold: (data: { roomId: string ;checkIn: string ;checkOut: string }) =>
     api.post<RoomHold>("/bookings/holds", data, getAuthToken()),
   releaseHold: (holdId: string) =>
     api.delete(`/bookings/holds/${holdId}`, getAuthToken()),
@@ -206,6 +204,86 @@ export const bookingApi = {
     api.post(`/bookings/${bookingId}/modify`, data, getAuthToken()),
 }
 
+export const transportationApi = {
+  services: (params?: {
+    serviceType?: "AIRPORT_PICKUP" | "AIRPORT_DROP_OFF" | "HOTEL_TRANSFER" | "PRIVATE_DRIVER" | "CAR_RENTAL"
+    passengers?: number
+    maxPrice?: number
+    page?: number
+    limit?: number
+  }) =>
+    api.get<{
+      total: number
+      page: number
+      limit: number
+      items: Array<{
+        id: string
+        name: string
+        serviceType: string
+        description?: string | null
+        fixedPrice: number | string
+        dailyRate?: number | string | null
+        currency: string
+        passengerLimit: number
+        luggageLimit?: number | null
+        durationMinutes?: number | null
+        depositAmount?: number | string | null
+        mileagePolicyKm?: number | null
+        advanceBookingMinutes?: number | null
+        provider: {
+          id: string
+          businessName: string
+          phone: string
+          email: string
+          description?: string | null
+          verificationStatus: string
+          city?: { id: string ;name: string } | null
+        }
+      }>
+    }>(`/transportation/services${query(params)}`),
+  createBooking: (data: {
+    serviceId: string
+    pickupAt: string
+    pickupLocation: string
+    dropoffLocation: string
+    passengers: number
+    luggageCount?: number
+    customerNotes?: string
+    rentalStartDate?: string
+    rentalEndDate?: string
+  }) => api.post(`/transportation/bookings`, data, getAuthToken()),
+  myBookings: () =>
+    api.get<Array<{
+      id: string
+      bookingRef: string
+      pickupAt: string
+      pickupLocation: string
+      dropoffLocation: string
+      passengers: number
+      priceAmount: number | string
+      currency: string
+      status: string
+      paymentStatus: string
+      rentalStartDate?: string | null
+      rentalEndDate?: string | null
+      service: { name: string ;serviceType: string ;currency: string }
+      provider: { businessName: string ;phone: string }
+      vehicle?: {
+        vehicleType: string
+        make?: string | null
+        model?: string | null
+        plateNumber: string
+      } | null
+      driver?: { name: string ;phone: string } | null
+    }>>(`/transportation/bookings`, getAuthToken()),
+  cancelBooking: (id: string) =>
+    api.post(
+      `/transportation/bookings/${id}/cancel`,
+      undefined,
+      getAuthToken(),
+    ),
+}
+
 export const paymentApi = {
   mine: () => api.get<{ data: Payment[] }>("/payments/my", getAuthToken()),
   intent: (
@@ -221,7 +299,7 @@ export const paymentApi = {
     }>(`/payments/${bookingId}/intent`, { method }, getAuthToken()),
   mockCallback: (
     bookingId: string,
-    data?: { reference?: string; transactionId?: string; message?: string },
+    data?: { reference?: string ;transactionId?: string ;message?: string },
     secret = "development-mock-payment-secret",
   ) =>
     api.post(`/payments/mock/${bookingId}`, data ?? {}, undefined, {
@@ -267,7 +345,7 @@ export const notificationApi = {
 }
 
 export const contactApi = {
-  createThread: (hotelId: string, data: { subject: string; message: string }) =>
+  createThread: (hotelId: string, data: { subject: string ;message: string }) =>
     api.post<ContactThread>(`/hotels/${hotelId}/contact`, data, getAuthToken()),
   listThreads: (hotelId?: string) =>
     api.get<ContactThread[]>(
@@ -290,8 +368,160 @@ export const contactApi = {
     ),
 }
 
+export const disputeApi = {
+  create: (data: { bookingId: string ;reason: string }) =>
+    api.post<Dispute>("/disputes", data, getAuthToken()),
+  listMine: (params?: { page?: number ;pageSize?: number ;status?: string }) =>
+    api.get<Paginated<Dispute>>(
+      `/disputes/mine${query(params)}`,
+      getAuthToken(),
+    ),
+  adminList: (params?: { page?: number ;pageSize?: number ;status?: string }) =>
+    api.get<Paginated<Dispute>>(`/disputes${query(params)}`, getAuthToken()),
+  markUnderReview: (id: string) =>
+    api.post<Dispute>(`/disputes/${id}/review`, undefined, getAuthToken()),
+  resolve: (id: string, data: { resolution: string }) =>
+    api.post<Dispute>(`/disputes/${id}/resolve`, data, getAuthToken()),
+  close: (id: string) =>
+    api.post<Dispute>(`/disputes/${id}/close`, undefined, getAuthToken()),
+}
+
+export type ManagerDashboardWidget = {
+  id?: string
+  key: string
+  title?: string | null
+  config?: unknown
+  position: number
+  isVisible: boolean
+}
+
+export type ManagerDashboardLayout = {
+  id: string
+  name: string
+  layout: "compact" | "standard" | "spacious"
+  isDefault: boolean
+  widgets: ManagerDashboardWidget[]
+}
+
+export type ManagerDashboardLayoutInput = {
+  name?: string
+  layout?: ManagerDashboardLayout["layout"]
+  isDefault?: boolean
+  widgets?: Array<Pick<ManagerDashboardWidget, "key" | "title" | "config" | "position" | "isVisible">>
+}
+
+export type ManagerNavigationItem = {
+  id: string
+  label: string
+  icon?: string | null
+  route: string
+  position: number
+  enabled: boolean
+  requiredPermission?: string | null
+  departmentId?: string | null
+  isSystem: boolean
+}
+
+export type ManagerNavigationItemInput = Omit<Partial<ManagerNavigationItem>, "id" | "isSystem"> & {
+  label: string
+  route: string
+}
+
 export const managerApi = {
   hotels: () => api.get<Hotel[]>("/catalog/manager/hotels", getAuthToken()),
+  myHotel: () => api.get<Hotel>("/catalog/manager/my-hotel", getAuthToken()),
+  roles: (hotelId?: string) =>
+    api.get<any[]>(`/manager/roles${query({ hotelId })}`, getAuthToken()),
+  permissions: () =>
+    api.get<any[]>("/manager/roles/permissions", getAuthToken()),
+  createRole: (data: any) => api.post("/manager/roles", data, getAuthToken()),
+  updateRole: (
+    roleId: string,
+    data: { name?: string ;description?: string | null ;isActive?: boolean },
+    hotelId?: string,
+  ) =>
+    api.patch(
+      `/manager/roles/${roleId}${query({ hotelId })}`,
+      data,
+      getAuthToken(),
+    ),
+  deleteRole: (roleId: string, hotelId?: string) =>
+    api.delete(`/manager/roles/${roleId}${query({ hotelId })}`, getAuthToken()),
+  updateRolePermissions: (
+    roleId: string,
+    permissionKeys: string[],
+    hotelId?: string,
+  ) =>
+    api.put(
+      `/manager/roles/${roleId}/permissions${query({ hotelId })}`,
+      { permissionKeys },
+      getAuthToken(),
+    ),
+  staffRoles: (staffId: string, hotelId?: string) =>
+    api.get<any[]>(
+      `/manager/staff/${staffId}/roles${query({ hotelId })}`,
+      getAuthToken(),
+    ),
+  assignStaffRole: (
+    staffId: string,
+    data: { roleId: string ;startAt?: string ;endAt?: string ;hotelId?: string },
+  ) => api.post(`/manager/staff/${staffId}/roles`, data, getAuthToken()),
+  removeStaffRole: (staffId: string, roleId: string, hotelId?: string) =>
+    api.delete(
+      `/manager/staff/${staffId}/roles/${roleId}${query({ hotelId })}`,
+      getAuthToken(),
+    ),
+  dashboardLayouts: () =>
+    api.get<ManagerDashboardLayout[]>(
+      "/manager/dashboard/layouts",
+      getAuthToken(),
+    ),
+  createDashboardLayout: (data: ManagerDashboardLayoutInput) =>
+    api.post<ManagerDashboardLayout>(
+      "/manager/dashboard/layouts",
+      data,
+      getAuthToken(),
+    ),
+  updateDashboardLayout: (id: string, data: ManagerDashboardLayoutInput) =>
+    api.patch<ManagerDashboardLayout>(
+      `/manager/dashboard/layouts/${id}`,
+      data,
+      getAuthToken(),
+    ),
+  deleteDashboardLayout: (id: string) =>
+    api.delete(`/manager/dashboard/layouts/${id}`, getAuthToken()),
+  navigationItems: () =>
+    api.get<ManagerNavigationItem[]>("/manager/navigation", getAuthToken()),
+  createNavigationItem: (data: ManagerNavigationItemInput) =>
+    api.post<ManagerNavigationItem>(
+      "/manager/navigation",
+      data,
+      getAuthToken(),
+    ),
+  updateNavigationItem: (
+    id: string,
+    data: Partial<ManagerNavigationItemInput>,
+  ) =>
+    api.patch<ManagerNavigationItem>(
+      `/manager/navigation/${id}`,
+      data,
+      getAuthToken(),
+    ),
+  deleteNavigationItem: (id: string) =>
+    api.delete(`/manager/navigation/${id}`, getAuthToken()),
+  resetNavigation: () =>
+    api.post<ManagerNavigationItem[]>(
+      "/manager/navigation/reset",
+      undefined,
+      getAuthToken(),
+    ),
+  coupons: () => api.get<Coupon[]>("/manager/coupons", getAuthToken()),
+  createCoupon: (data: any) =>
+    api.post<Coupon>("/manager/coupons", data, getAuthToken()),
+  updateCoupon: (id: string, data: any) =>
+    api.patch<Coupon>(`/manager/coupons/${id}`, data, getAuthToken()),
+  deactivateCoupon: (id: string) =>
+    api.delete(`/manager/coupons/${id}`, getAuthToken()),
   createHotel: (data: any) =>
     api.post<Hotel>("/catalog/hotels", data, getAuthToken()),
   updateHotel: (id: string, data: any) =>
@@ -355,7 +585,7 @@ export const managerApi = {
     ),
   setAvailability: (
     roomId: string,
-    data: { dates: string[]; isAvailable: boolean; priceOverride?: number },
+    data: { dates: string[] ;isAvailable: boolean ;priceOverride?: number },
   ) => api.post(`/catalog/rooms/${roomId}/availability`, data, getAuthToken()),
   blockMaintenance: (data: {
     roomId: string
@@ -385,11 +615,11 @@ export const managerApi = {
     api.post(`/bookings/${bookingId}/no-show`, undefined, getAuthToken()),
   earlyCheckIn: (
     bookingId: string,
-    data: { actualCheckIn?: string; fee?: number; reason?: string },
+    data: { actualCheckIn?: string ;fee?: number ;reason?: string },
   ) => api.post(`/bookings/${bookingId}/early-checkin`, data, getAuthToken()),
   lateCheckOut: (
     bookingId: string,
-    data: { actualCheckOut?: string; fee?: number; reason?: string },
+    data: { actualCheckOut?: string ;fee?: number ;reason?: string },
   ) => api.post(`/bookings/${bookingId}/late-checkout`, data, getAuthToken()),
   listStayRequests: (hotelId: string) =>
     api.get<StayRequest[]>(
@@ -398,7 +628,7 @@ export const managerApi = {
     ),
   decideStayRequest: (
     stayRequestId: string,
-    data: { decision: "APPROVED" | "REJECTED"; decisionNote?: string },
+    data: { decision: "APPROVED" | "REJECTED" ;decisionNote?: string },
   ) =>
     api.post(
       `/bookings/stay-requests/${stayRequestId}/decide`,
@@ -407,7 +637,7 @@ export const managerApi = {
     ),
   relocateRoom: (
     bookingId: string,
-    data: { oldRoomId: string; newRoomId: string; reason: string },
+    data: { oldRoomId: string ;newRoomId: string ;reason: string },
   ) => api.post(`/bookings/${bookingId}/relocate-room`, data, getAuthToken()),
   listStaff: (hotelId: string) =>
     api.get<{ data: HotelStaffMember[] }>(
@@ -426,7 +656,7 @@ export const managerApi = {
   ) => api.post(`/manager/hotels/${hotelId}/staff`, data, getAuthToken()),
   assignStaff: (
     hotelId: string,
-    data: { email?: string; staffId?: string; userId?: string; role?: string },
+    data: { email?: string ;staffId?: string ;userId?: string ;role?: string },
   ) =>
     api.post(
       `/manager/hotels/${hotelId}/staff`,
@@ -551,10 +781,10 @@ export const adminApi = {
       hotelCount: number
       bookingCount: number
       totalRevenue: number
-      users?: { total: number; customers: number; staff: number }
-      hotels?: { total: number; active: number; pending: number }
-      bookings?: { total: number; active: number; pending: number }
-      revenue?: { total: number; thisMonth: number; pendingPayments: number }
+      users?: { total: number ;customers: number ;staff: number }
+      hotels?: { total: number ;active: number ;pending: number }
+      bookings?: { total: number ;active: number ;pending: number }
+      revenue?: { total: number ;thisMonth: number ;pendingPayments: number }
       topHotels?: Array<{
         id: string
         name: string
@@ -578,22 +808,22 @@ export const adminApi = {
       }>
     }>("/admin/reports/occupancy", getAuthToken()),
   monthlyRevenue: (months = 12) =>
-    api.get<Array<{ month: string; revenue: number }>>(
+    api.get<Array<{ month: string ;revenue: number }>>(
       `/admin/reports/monthly-revenue?months=${months}`,
       getAuthToken(),
     ),
   bookingTrends: (days = 30) =>
-    api.get<Array<{ date: string; bookings: number }>>(
+    api.get<Array<{ date: string ;bookings: number }>>(
       `/admin/reports/booking-trends?days=${days}`,
       getAuthToken(),
     ),
   mostBookedHotels: (limit = 10) =>
-    api.get<Array<{ hotelId: string; name: string; bookings: number }>>(
+    api.get<Array<{ hotelId: string ;name: string ;bookings: number }>>(
       `/admin/reports/most-booked-hotels?limit=${limit}`,
       getAuthToken(),
     ),
   revenue: () =>
-    api.get<Array<{ hotelId: string; name: string; revenue: number }>>(
+    api.get<Array<{ hotelId: string ;name: string ;revenue: number }>>(
       "/admin/reports/revenue",
       getAuthToken(),
     ),
@@ -621,7 +851,7 @@ export const adminApi = {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : ""
     return api.get<{
       data: Array<User & {
-        _count?: { bookings: number; reviews: number; favorites: number }
+        _count?: { bookings: number ;reviews: number ;favorites: number }
       }>
       total: number
       page: number
@@ -680,11 +910,16 @@ export const adminApi = {
     api.post(`/admin/hotels/${hotelId}/approve`, undefined, getAuthToken()),
   rejectHotel: (hotelId: string, reason: string) =>
     api.post(`/admin/hotels/${hotelId}/reject`, { reason }, getAuthToken()),
-  createHotel: (data: any) => api.post<Hotel>('/catalog/hotels', data, getAuthToken()),
+  createHotel: (data: any) =>
+    api.post<Hotel>("/catalog/hotels", data, getAuthToken()),
   addHotelImages: (hotelId: string, files: File[]) => {
     const form = new FormData()
-    files.forEach((f) => form.append('images', f))
-    return api.postForm(`/catalog/hotels/${hotelId}/images`, form, getAuthToken())
+    files.forEach((f) => form.append("images", f))
+    return api.postForm(
+      `/catalog/hotels/${hotelId}/images`,
+      form,
+      getAuthToken(),
+    )
   },
   reassignManager: (hotelId: string, managerId: string) =>
     api.patch(
@@ -700,10 +935,107 @@ export const adminApi = {
   deleteCoupon: (id: string) =>
     api.delete(`/admin/coupons/${id}`, getAuthToken()),
   settings: () => api.get<PlatformSetting[]>("/admin/settings", getAuthToken()),
-  upsertSetting: (key: string, data: { value: any; description?: string }) =>
+  upsertSetting: (key: string, data: { value: any ;description?: string }) =>
     api.put<PlatformSetting>(`/admin/settings/${key}`, data, getAuthToken()),
   deleteSetting: (key: string) =>
     api.delete(`/admin/settings/${key}`, getAuthToken()),
+}
+
+export type AdminContentStatus = "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "REJECTED" | "ARCHIVED"
+export type AdminContentSource = {
+  id: string
+  name: string
+  url?: string | null
+  license?: string | null
+  verifiedBy?: string | null
+  _count?: { places: number ;emergencyContacts: number ;cityHistories: number }
+}
+export type AdminContentCity = {
+  id: string
+  name: string
+  countryId: string
+  country?: { id: string ;name: string ;code: string }
+  _count?: { places: number ;hotels: number }
+}
+export type AdminContentPlace = {
+  id: string
+  name: string
+  amharicName?: string | null
+  description: string
+  category: string
+  status: AdminContentStatus
+  address: string
+  lat: number
+  lng: number
+  sourceId?: string | null
+  cityId?: string | null
+  city?: AdminContentCity | null
+  source?: AdminContentSource | null
+  updatedAt: string
+}
+
+export const adminContentApi = {
+  countries: () =>
+    api.get<Array<{ id: string ;name: string ;code: string }>>(
+      "/admin/content/countries",
+      getAuthToken(),
+    ),
+  cities: () =>
+    api.get<AdminContentCity[]>("/admin/content/cities", getAuthToken()),
+  createCity: (data: { name: string ;countryId: string }) =>
+    api.post<AdminContentCity>("/admin/content/cities", data, getAuthToken()),
+  sources: () =>
+    api.get<AdminContentSource[]>("/admin/content/sources", getAuthToken()),
+  createSource: (data: {
+    name: string
+    url?: string
+    license?: string
+    verifiedBy?: string
+  }) =>
+    api.post<AdminContentSource>(
+      "/admin/content/sources",
+      data,
+      getAuthToken(),
+    ),
+  places: (params?: Record<string, string>) =>
+    api.get<{
+      data: AdminContentPlace[]
+      total: number
+      page: number
+      pageSize: number
+    }>(`/admin/content/places${query(params)}`, getAuthToken()),
+  createPlace: (data: Record<string, unknown>) =>
+    api.post<AdminContentPlace>("/admin/content/places", data, getAuthToken()),
+  updatePlaceStatus: (id: string, status: AdminContentStatus) =>
+    api.post<AdminContentPlace>(
+      `/admin/content/places/${encodeURIComponent(id)}/status`,
+      { status },
+      getAuthToken(),
+    ),
+  knowledge: () =>
+    api.get<Array<{
+      id: string
+      title: string
+      content: string
+      approved: boolean
+      hotelId?: string | null
+      updatedAt: string
+    }>>("/admin/content/knowledge", getAuthToken()),
+  createKnowledge: (data: {
+    title: string
+    content: string
+    approved?: boolean
+    hotelId?: string | null
+  }) => api.post("/admin/content/knowledge", data, getAuthToken()),
+  updateKnowledge: (
+    id: string,
+    data: { approved?: boolean ;title?: string ;content?: string },
+  ) =>
+    api.patch(
+      `/admin/content/knowledge/${encodeURIComponent(id)}`,
+      data,
+      getAuthToken(),
+    ),
 }
 export const aiService = {
   chat: (data: {
@@ -722,7 +1054,7 @@ export const aiService = {
         category?: string
         distanceKm?: number
         images?: unknown[]
-        verifiedSource?: { name: string; license?: string | null } | null
+        verifiedSource?: { name: string ;license?: string | null } | null
         lastVerifiedAt?: string | null
       }>
     }>("/ai/chat", data, getAuthToken()),
@@ -802,8 +1134,8 @@ export interface EmergencyContactItem {
   kind: string
   name: string
   phone: string
-  source?: { id: string; name: string; license?: string | null } | null
-  hotel?: { id: string; name: string; address: string } | null
+  source?: { id: string ;name: string ;license?: string | null } | null
+  hotel?: { id: string ;name: string ;address: string } | null
   lastVerifiedAt: string
 }
 
@@ -813,19 +1145,85 @@ export interface DestinationItem {
   amharicName?: string | null
   description: string
   heroImage?: string | null
-  country: { id: string; name: string; code: string }
+  country: { id: string ;name: string ;code: string }
   placeCount: number
   hotelCount: number
 }
 
 export interface DestinationDetail extends DestinationItem {
   places: PlaceItem[]
-  hotels: Array<{ id: string; name: string; address: string; lat?: number | null; lng?: number | null; starRating: number; images: string[] }>
+  hotels: Array<{
+    id: string
+    name: string
+    address: string
+    lat?: number | null
+    lng?: number | null
+    starRating: number
+    images: string[]
+  }>
+}
+
+export interface HeritageCitation {
+  name: string
+  url?: string | null
+}
+
+export interface CityHistoryResponse {
+  city: {
+    id: string
+    name: string
+    country: { id: string ;name: string ;code: string }
+  }
+  tagline: string | null
+  overview: string | null
+  timeline: Array<{
+    id: string
+    period: string
+    title: string
+    body: string
+    citation: HeritageCitation
+  }>
+  stories: Array<{
+    id: string
+    title: string
+    body: string
+    placeId?: string
+    citation: HeritageCitation
+  }>
+  culture: Array<{
+    id: string
+    title: string
+    body: string
+    citation?: HeritageCitation
+  }>
+  source: {
+    id: string
+    name: string
+    url?: string | null
+    license?: string | null
+  } | null
+  verifiedAt: string | null
 }
 
 export const discoverApi = {
-  destinations: (limit = 50) => api.get<DestinationItem[]>(`/discover/destinations?limit=${limit}`),
-  destination: (cityId: string) => api.get<DestinationDetail>(`/discover/destinations/${encodeURIComponent(cityId)}`),
+  destinations: (limit = 50) =>
+    api.get<DestinationItem[]>(`/discover/destinations?limit=${limit}`),
+  destination: (cityId: string) =>
+    api.get<DestinationDetail>(
+      `/discover/destinations/${encodeURIComponent(cityId)}`,
+    ),
+  history: (cityId: string) =>
+    api.get<CityHistoryResponse>(
+      `/discover/cities/${encodeURIComponent(cityId)}/history`,
+    ),
+  timeline: (cityId: string) =>
+    api.get<Pick<CityHistoryResponse, "city" | "timeline" | "source" | "verifiedAt">>(
+      `/discover/cities/${encodeURIComponent(cityId)}/heritage/timeline`,
+    ),
+  heritageForCity: (cityId: string, limit = 30) =>
+    api.get<{ total: number ;data: PlaceItem[] }>(
+      `/discover/cities/${encodeURIComponent(cityId)}/heritage?limit=${limit}`,
+    ),
   nearby: (params: {
     lat: number
     lng: number
@@ -833,15 +1231,15 @@ export const discoverApi = {
     category?: string
     limit?: number
   }) =>
-    api.get<{ center: any; total: number; data: PlaceItem[] }>(
+    api.get<{ center: any ;total: number ;data: PlaceItem[] }>(
       `/discover/nearby${query(params)}`,
     ),
-  heritage: (params?: { cityId?: string; limit?: number }) =>
-    api.get<{ total: number; data: PlaceItem[] }>(
+  heritage: (params?: { cityId?: string ;limit?: number }) =>
+    api.get<{ total: number ;data: PlaceItem[] }>(
       `/discover/heritage${query(params)}`,
     ),
-  emergency: (params?: { city?: string; hotelId?: string }) =>
-    api.get<{ total: number; data: EmergencyContactItem[] }>(
+  emergency: (params?: { city?: string ;hotelId?: string }) =>
+    api.get<{ total: number ;data: EmergencyContactItem[] }>(
       `/discover/emergency${query(params)}`,
     ),
   search: (params: {
@@ -850,17 +1248,50 @@ export const discoverApi = {
     cityId?: string
     limit?: number
   }) =>
-    api.get<{ query: string; total: number; data: PlaceItem[] }>(
+    api.get<{ query: string ;total: number ;data: PlaceItem[] }>(
       `/discover/search${query(params)}`,
     ),
   place: (id: string) => api.get<PlaceItem>(`/discover/places/${id}`),
+  nearbyHeritage: (
+    hotelId: string,
+    params?: { radiusKm?: number ;limit?: number },
+  ) =>
+    api.get<{
+      hotel: { id: string ;name: string ;address: string ;lat: number ;lng: number }
+      radiusKm: number
+      total: number
+      data: PlaceItem[]
+    }>(
+      `/discover/hotels/${encodeURIComponent(hotelId)}/nearby-heritage${query(params)}`,
+    ),
+  nearbyHotels: (
+    placeId: string,
+    params?: { radiusKm?: number ;limit?: number },
+  ) =>
+    api.get<{
+      place: { id: string ;name: string ;lat: number ;lng: number }
+      radiusKm: number
+      total: number
+      data: Array<{
+        id: string
+        name: string
+        address: string
+        lat?: number | null
+        lng?: number | null
+        starRating: number
+        images: string[]
+        distanceKm: number
+      }>
+    }>(
+      `/discover/places/${encodeURIComponent(placeId)}/nearby-hotels${query(params)}`,
+    ),
   sources: () =>
     api.get<Array<{
       id: string
       name: string
       url?: string
       license?: string
-      _count: { places: number; emergencyContacts: number }
+      _count: { places: number ;emergencyContacts: number }
     }>>("/discover/sources"),
 }
 
@@ -870,32 +1301,37 @@ export interface TripItem {
   dayDate: string
   startTime?: string | null
   durationMin?: number | null
-  itemType: 'PLACE' | 'BOOKING' | 'CUSTOM'
+  itemType: "PLACE" | "BOOKING" | "CUSTOM"
   title: string
   notes?: string | null
   costAmount?: number | string | null
   currency?: string | null
-  status: 'PLANNED' | 'DONE' | 'SKIPPED'
-  createdBy: 'USER' | 'AI'
+  status: "PLANNED" | "DONE" | "SKIPPED"
+  createdBy: "USER" | "AI"
   place?: PlaceItem | null
-  booking?: { id: string; bookingRef: string; checkIn: string; checkOut: string } | null
+  booking?: {
+    id: string
+    bookingRef: string
+    checkIn: string
+    checkOut: string
+  } | null
 }
 
 export interface TripItemConflictResponse {
   item: TripItem
   hasConflict: boolean
-  conflictWith: Array<{ id: string; title: string; timeWindow: string }>
+  conflictWith: Array<{ id: string ;title: string ;timeWindow: string }>
 }
 
 export interface BuildDayProposalItem {
   placeId: string
   title: string
   dayDate: string
-  startTime: string
-  durationMin: number
+  startTime: string | null
+  durationMin: number | null
   category: string
-  notes: string
-  estimatedCostEtb: number
+  notes: string | null
+  estimatedCostEtb: number | null
   place: {
     id: string
     name: string
@@ -906,27 +1342,33 @@ export interface BuildDayProposalItem {
   }
 }
 
+export type BuildDayScope = "city_interests" | "city" | "interests" | "global"
+
 export interface BuildDayResponse {
   tripId: string
   dayDate: string
-  duration: '2_HOURS' | 'HALF_DAY' | 'FULL_DAY'
+  duration: "2_HOURS" | "HALF_DAY" | "FULL_DAY" | "MULTIPLE_DAYS"
+  scope: BuildDayScope
+  cityId: string | null
+  cityName: string | null
+  interestsApplied: string[]
   proposal: BuildDayProposalItem[]
-  totalDurationMin: number
-  estimatedBudgetEtb: number
+  totalDurationMin: number | null
+  estimatedBudgetEtb: number | null
 }
 
 export interface TripItemInput {
   dayDate: string
   startTime?: string
   durationMin?: number
-  itemType: 'PLACE' | 'BOOKING' | 'CUSTOM'
+  itemType: "PLACE" | "BOOKING" | "CUSTOM"
   placeId?: string
   bookingId?: string
   title: string
   notes?: string
   costAmount?: number
   currency?: string
-  createdBy?: 'USER' | 'AI'
+  createdBy?: "USER" | "AI"
   userConfirmed?: boolean
 }
 
@@ -936,33 +1378,67 @@ export interface Trip {
   startDate: string
   endDate: string
   timezone: string
-  hotel?: { id: string; name: string; address: string } | null
-  booking?: { id: string; bookingRef: string; checkIn: string; checkOut: string; hotelId: string } | null
+  hotel?: { id: string ;name: string ;address: string } | null
+  booking?: {
+    id: string
+    bookingRef: string
+    checkIn: string
+    checkOut: string
+    hotelId: string
+  } | null
   items: TripItem[]
 }
 
 export const tripApi = {
-  list: () => api.get<{ data: Trip[]; total: number }>('/trips', getAuthToken()),
-  get: (id: string) => api.get<Trip>('/trips/' + encodeURIComponent(id), getAuthToken()),
-  create: (body: { title: string; startDate: string; endDate: string; hotelId?: string; bookingId?: string }) =>
-    api.post<Trip>('/trips', body, getAuthToken()),
+  list: () => api.get<{ data: Trip[] ;total: number }>("/trips", getAuthToken()),
+  get: (id: string) =>
+    api.get<Trip>("/trips/" + encodeURIComponent(id), getAuthToken()),
+  create: (body: {
+    title: string
+    startDate: string
+    endDate: string
+    hotelId?: string
+    bookingId?: string
+  }) => api.post<Trip>("/trips", body, getAuthToken()),
   addItem: (tripId: string, body: TripItemInput) =>
-    api.post<TripItemConflictResponse>('/trips/' + encodeURIComponent(tripId) + '/items', body, getAuthToken()),
-  updateItem: (tripId: string, itemId: string, body: Partial<TripItemInput> & { status?: TripItem['status'] }) =>
-    api.patch<TripItemConflictResponse>('/trips/' + encodeURIComponent(tripId) + '/items/' + encodeURIComponent(itemId), body, getAuthToken()),
+    api.post<TripItemConflictResponse>(
+      "/trips/" + encodeURIComponent(tripId) + "/items",
+      body,
+      getAuthToken(),
+    ),
+  updateItem: (
+    tripId: string,
+    itemId: string,
+    body: Partial<TripItemInput> & { status?: TripItem["status"] },
+  ) =>
+    api.patch<TripItemConflictResponse>(
+      "/trips/" +
+        encodeURIComponent(tripId) +
+        "/items/" +
+        encodeURIComponent(itemId),
+      body,
+      getAuthToken(),
+    ),
   removeItem: (tripId: string, itemId: string) =>
-    api.delete<{ deleted: boolean }>('/trips/' + encodeURIComponent(tripId) + '/items/' + encodeURIComponent(itemId), getAuthToken()),
+    api.delete<{ deleted: boolean }>(
+      "/trips/" +
+        encodeURIComponent(tripId) +
+        "/items/" +
+        encodeURIComponent(itemId),
+      getAuthToken(),
+    ),
   buildDay: (
     tripId: string,
     body: {
       dayDate: string
-      duration: '2_HOURS' | 'HALF_DAY' | 'FULL_DAY'
+      duration: "2_HOURS" | "HALF_DAY" | "FULL_DAY" | "MULTIPLE_DAYS"
       startTime: string
+      cityId?: string
       interests?: string[]
     },
   ) =>
     api.post<BuildDayResponse>(
-      '/trips/' + encodeURIComponent(tripId) + '/build-day',
+      "/trips/" + encodeURIComponent(tripId) + "/build-day",
       body,
       getAuthToken(),
     ),

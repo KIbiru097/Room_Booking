@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -108,7 +107,6 @@ const TABS: { id: TabType; label: string; icon: React.ComponentProps<typeof Ioni
 ];
 
 export default function DiscoverScreen() {
-  const insets = useSafeAreaInsets();
   const { colorScheme } = useTheme();
   const dark = colorScheme === 'dark';
   const c = dark ? darkColors : colors;

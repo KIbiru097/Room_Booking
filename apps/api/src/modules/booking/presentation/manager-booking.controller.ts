@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Role } from '../../../generated/prisma/client';
 import { Roles } from '../../../common/decorators/roles.decorator';
+import { Permissions } from '../../../common/decorators/permissions.decorator';
 import { ManagerBookingService } from '../application/manager-booking.service';
 import { createZodDto } from 'nestjs-zod';
 import { hotelIdParamsSchema } from '@repo/shared-types';
@@ -34,6 +35,7 @@ export class ManagerBookingController {
   constructor(private readonly managerBookings: ManagerBookingService) {}
 
   @Post('walk-in')
+  @Permissions('booking.create')
   @RequireFeatureFlag('ENABLE_WALK_IN_BOOKINGS')
   @ApiOperation({ summary: 'Create a walk-in booking at hotel front desk' })
   createWalkIn(@Body() dto: CreateWalkInBookingDto, @Req() req: AuthedRequest) {
@@ -41,24 +43,28 @@ export class ManagerBookingController {
   }
 
   @Get('manage')
+  @Permissions('booking.view')
   @ApiOperation({ summary: 'List bookings across managed hotels' })
   list(@Query() query: ManageBookingsQueryDto, @Req() req: AuthedRequest) {
     return this.managerBookings.listBookings(query, req.user);
   }
 
   @Get('dashboard/stats')
+  @Permissions('booking.view')
   @ApiOperation({ summary: 'Bookings dashboard stats for managed hotels' })
   stats(@Req() req: AuthedRequest) {
     return this.managerBookings.dashboardStats(req.user);
   }
 
   @Post(':bookingId/confirm')
+  @Permissions('booking.confirm')
   @ApiOperation({ summary: 'Confirm a pending booking' })
   confirm(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.managerBookings.confirm(params.bookingId, req.user);
   }
 
   @Post(':bookingId/reject')
+  @Permissions('booking.reject')
   @ApiOperation({ summary: 'Reject a pending booking' })
   reject(
     @Param() params: BookingIdParamsDto,
@@ -69,18 +75,21 @@ export class ManagerBookingController {
   }
 
   @Post(':bookingId/check-in')
+  @Permissions('booking.checkin')
   @ApiOperation({ summary: 'Check a confirmed booking in' })
   checkIn(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.managerBookings.checkIn(params.bookingId, req.user);
   }
 
   @Post(':bookingId/check-out')
+  @Permissions('booking.checkout')
   @ApiOperation({ summary: 'Check a checked-in booking out' })
   checkOut(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.managerBookings.checkOut(params.bookingId, req.user);
   }
 
   @Post(':bookingId/early-checkin')
+  @Permissions('booking.checkin')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Direct staff/manager approval for early check-in' })
   earlyCheckIn(
@@ -96,6 +105,7 @@ export class ManagerBookingController {
   }
 
   @Post(':bookingId/late-checkout')
+  @Permissions('booking.checkout')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Direct staff/manager approval for late check-out' })
   lateCheckOut(
@@ -111,6 +121,7 @@ export class ManagerBookingController {
   }
 
   @Get('hotels/:id/stay-requests')
+  @Permissions('booking.view')
   @ApiOperation({ summary: 'List stay requests for a hotel' })
   listStayRequests(
     @Param() params: HotelIdParamsDto,
@@ -120,6 +131,7 @@ export class ManagerBookingController {
   }
 
   @Post('stay-requests/:id/decide')
+  @Permissions('booking.edit')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Approve or reject a stay request' })
   decideStayRequest(
@@ -131,6 +143,7 @@ export class ManagerBookingController {
   }
 
   @Post(':bookingId/no-show')
+  @Permissions('booking.no_show')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Mark a confirmed booking as no-show' })
   noShow(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
@@ -138,6 +151,7 @@ export class ManagerBookingController {
   }
 
   @Post(':bookingId/relocate-room')
+  @Permissions('booking.relocate')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Relocate a checked-in guest to another room' })
   relocateRoom(

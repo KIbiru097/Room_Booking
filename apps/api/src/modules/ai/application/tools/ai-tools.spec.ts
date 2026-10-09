@@ -5,6 +5,7 @@ import {
   CheckRoomAvailabilityTool,
   CreateBookingTool,
   GetCustomerBookingTool,
+  GetHeritageInfoTool,
   GetHotelInformationTool,
   GetHotelPoliciesTool,
   GetPaymentStatusTool,
@@ -301,6 +302,68 @@ describe('AI Tools Authorization & Execution (AI-007, AI-028)', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('GetHeritageInfoTool (city scoping & approved sources)', () => {
+    beforeEach(() => {
+      mockDb.place = { findMany: jest.fn() };
+    });
+
+    it('filters heritage results to the requested city', async () => {
+      mockDb.place.findMany.mockResolvedValue([]);
+      const tool = new GetHeritageInfoTool(mockDb);
+
+      const result = (await tool.execute({ city: 'Gondar' })) as any;
+
+      expect(mockDb.place.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: 'PUBLISHED',
+            sourceId: { not: null },
+            city: { name: { contains: 'Gondar', mode: 'insensitive' } },
+            category: { in: ['HERITAGE', 'MUSEUM'] },
+          }),
+        }),
+      );
+      expect(result.city).toBe('Gondar');
+    });
+
+    it('tells the assistant when a city has no verified heritage records', async () => {
+      mockDb.place.findMany.mockResolvedValue([]);
+      const tool = new GetHeritageInfoTool(mockDb);
+
+      const result = (await tool.execute({ city: 'Lalibela' })) as any;
+
+      expect(result.heritageSites).toEqual([]);
+      expect(result.note).toContain('Lalibela');
+      expect(result.note).toContain('instead of guessing');
+    });
+
+    it('returns city attribution and unverified-hours note per site', async () => {
+      mockDb.place.findMany.mockResolvedValue([
+        {
+          name: 'Fasil Ghebbi',
+          amharicName: 'የፋሲል ግቢ',
+          description: 'Royal enclosure of the Gondarine emperors.',
+          address: 'Gondar',
+          openingHours: '09:00–18:00',
+          hoursVerified: false,
+          rating: 4.8,
+          city: { name: 'Gondar' },
+          source: { name: 'Ethiopian Heritage Authority', license: 'ODbL' },
+        },
+      ]);
+      const tool = new GetHeritageInfoTool(mockDb);
+
+      const result = (await tool.execute({ city: 'Gondar' })) as any;
+
+      expect(result.city).toBe('Gondar');
+      expect(result.heritageSites[0].city).toBe('Gondar');
+      expect(result.heritageSites[0].verifiedSource).toBe(
+        'Ethiopian Heritage Authority (ODbL)',
+      );
+      expect(result.heritageSites[0].hoursNote).toContain('PLACE-010');
     });
   });
 });

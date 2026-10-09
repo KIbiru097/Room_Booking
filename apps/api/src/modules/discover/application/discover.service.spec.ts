@@ -8,6 +8,7 @@ describe('DiscoverService', () => {
       findFirst: jest.fn(),
       create: jest.fn(),
     },
+    city: { findMany: jest.fn() },
     emergencyContact: { findMany: jest.fn() },
     source: { findMany: jest.fn() },
   } as any;
@@ -81,5 +82,46 @@ describe('DiscoverService', () => {
         }),
       }),
     );
+  });
+
+  it('never reuses a place description as the destination description', async () => {
+    prisma.city.findMany.mockResolvedValue([
+      {
+        id: 'city-gondar',
+        name: 'Gondar',
+        country: { id: 'country-et', name: 'Ethiopia', code: 'ET' },
+        places: [{ images: ['https://example.com/fasil-ghebbi.jpg'] }],
+        _count: { places: 2, hotels: 3 },
+      },
+    ]);
+
+    const [destination] = await service.getDestinations();
+
+    expect(destination.description).toContain('Gondar, Ethiopia');
+    expect(destination.description).toContain('2 verified places');
+    expect(destination.description).toContain('3 active hotels');
+    expect(destination.amharicName).toBeNull();
+    expect(destination.heroImage).toBe('https://example.com/fasil-ghebbi.jpg');
+    expect(destination.placeCount).toBe(2);
+    expect(destination.hotelCount).toBe(3);
+  });
+
+  it('describes a destination with no places without inventing content', async () => {
+    prisma.city.findMany.mockResolvedValue([
+      {
+        id: 'city-bahir-dar',
+        name: 'Bahir Dar',
+        country: { id: 'country-et', name: 'Ethiopia', code: 'ET' },
+        places: [],
+        _count: { places: 0, hotels: 3 },
+      },
+    ]);
+
+    const [destination] = await service.getDestinations();
+
+    expect(destination.description).toBe(
+      'Bahir Dar, Ethiopia — 0 verified places and 3 active hotels.',
+    );
+    expect(destination.heroImage).toBeNull();
   });
 });

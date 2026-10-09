@@ -1,6 +1,7 @@
-import * as React from 'react'
+import * as React from "react"
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   helperText?: string
   error?: string
@@ -11,7 +12,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
-      className = '',
+      className = "",
       id,
       label,
       helperText,
@@ -48,14 +49,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             disabled={disabled}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={error ? errorId : helperText ? helperId : undefined}
+            aria-invalid={error ? "true" : "false"}
+            aria-describedby={
+              error ? errorId : helperText ? helperId : undefined
+            }
             className={`w-full rounded-xl border bg-white text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 min-h-[44px] py-2.5 ${
-              leftIcon ? 'pl-10' : 'pl-4'
-            } ${rightIcon ? 'pr-10' : 'pr-4'} ${
+              leftIcon ? "pl-10" : "pl-4"
+            } ${rightIcon ? "pr-10" : "pr-4"} ${
               error
-                ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                : 'border-slate-200 focus:border-[#0F2942] focus:ring-2 focus:ring-[#0F2942]/15'
+                ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                : "border-slate-200 focus:border-[#0b1528] focus:ring-2 focus:ring-[#0b1528]/15"
             } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed ${className}`}
             {...props}
           />
@@ -66,7 +69,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p id={errorId} role="alert" className="mt-1.5 text-xs text-red-600 font-medium">
+          <p
+            id={errorId}
+            role="alert"
+            className="mt-1.5 text-xs text-red-600 font-medium"
+          >
             {error}
           </p>
         )}
@@ -80,4 +87,4 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   },
 )
 
-Input.displayName = 'Input'
+Input.displayName = "Input"

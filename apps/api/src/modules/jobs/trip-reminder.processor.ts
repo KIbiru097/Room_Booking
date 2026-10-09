@@ -22,8 +22,16 @@ export class TripReminderProcessor extends WorkerHost {
 
     const now = new Date();
     const horizon = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    const startDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const endDay = new Date(Date.UTC(horizon.getUTCFullYear(), horizon.getUTCMonth(), horizon.getUTCDate()));
+    const startDay = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
+    const endDay = new Date(
+      Date.UTC(
+        horizon.getUTCFullYear(),
+        horizon.getUTCMonth(),
+        horizon.getUTCDate(),
+      ),
+    );
     const items = await this.db.tripItem.findMany({
       where: {
         status: 'PLANNED',

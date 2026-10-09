@@ -122,5 +122,20 @@
   "tryAgain": "Try Again",
   "closeDrawer": "Close drawer",
   "closeModal": "Close modal",
-  "dismissToast": "Dismiss toast"
+  "dismissToast": "Dismiss toast",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "footerTagline": "Curated boutique suites and five-star resorts across Ethiopia.",
+  "footerExplore": "Explore",
+  "footerAccount": "Account",
+  "footerPortals": "Portals",
+  "footerEmergency": "Emergency Services",
+  "footerFavorites": "Favorites",
+  "footerPaymentHistory": "Payment History",
+  "footerPortalHint": "Sign in with a staff, manager or admin account to open the back-office portals.",
+  "footerRights": "All rights reserved.",
+  "transportation": "Transportation",
+  "offlineNotice": "You are offline.",
+  "slowConnectionNotice": "Your connection is slow.",
+  "cachedDataAvailable": "Cached trips, places, and safety information remain available."
 }

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LuxStay">
+  <rect width="512" height="512" rx="112" fill="#0F2942"/>
+  <path fill="#D4AF37" d="M106 342V170h86c48 0 80 25 80 67 0 22-10 40-28 52 22 10 35 29 35 56 0 47-34 77-91 77h-82Zm55-105h31c19 0 29-10 29-25s-10-25-29-25h-31v50Zm0 61h37c22 0 32-10 32-28s-10-28-32-28h-37v56Z"/>
+  <path fill="#F8FAFC" d="M292 342V170h56v124h93v48H292Z"/>
+  <circle cx="443" cy="123" r="22" fill="#D4AF37"/>
+</svg>

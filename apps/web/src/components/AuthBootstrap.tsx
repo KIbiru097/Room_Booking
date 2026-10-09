@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react'
-import { useAuth } from '@/lib/auth-store'
+import { useEffect } from "react"
+import { useAuth } from "@/lib/auth-store"
 
 export default function AuthBootstrap() {
   const loadFromStorage = useAuth((s) => s.loadFromStorage)

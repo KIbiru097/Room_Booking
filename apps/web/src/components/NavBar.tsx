@@ -1,102 +1,112 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth-store'
-import { useLanguage } from '@/lib/i18n'
+// Close user menu on outside click
+
+// Permanent luxury dark sapphire liquid glass navbar styling across all pages
+/* Brand Logo */ /* Desktop Navigation Links */ /* Role-scoped Portal Links */ /* Desktop User Section */ /* Language Switcher Toggle */ /* User Dropdown Menu */ /* Mobile Hamburger Toggle */ /* Mobile Drawer Menu */
+
+import * as React from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-store"
+import { useLanguage } from "@/lib/i18n"
+import { useTheme } from "@/providers/ThemeProvider"
 import {
   Hotel,
   Search,
   Home,
   Menu,
   X,
-  User as UserIcon,
   LogOut,
   LayoutDashboard,
+  Moon,
+  Sun,
   CalendarCheck,
   Shield,
-  Briefcase,
-  Sliders,
   ChevronDown,
   Compass,
-} from 'lucide-react'
-import { Button } from './ui/Button'
-import { StatusBadge } from './ui/StatusBadge'
+  Car,
+} from "lucide-react"
+import { Button } from "./ui/Button"
 
 export default function NavBar() {
   const router = useRouter()
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const { language, setLanguage, t } = useLanguage()
+  const { isDark, toggleTheme } = useTheme()
 
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [userMenuOpen, setUserMenuOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
   const userMenuRef = React.useRef<HTMLDivElement>(null)
 
-  const isHomePage = pathname === '/'
-
   React.useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40)
-    window.addEventListener('scroll', handleScroll, { passive: true })
+    const handleScroll = () =>
+      setScrolled(
+        window.scrollY >
+          40,
+      )
+    window.addEventListener("scroll", handleScroll, { passive: true })
     handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  // Close user menu on outside click
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
         setUserMenuOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
-
-  // Permanent luxury dark sapphire liquid glass navbar styling across all pages
   const navBackground = scrolled
-    ? 'bg-[#0F2942]/95 backdrop-blur-2xl border-white/15 shadow-xl shadow-black/20'
-    : 'bg-[#0F2942]/85 backdrop-blur-2xl border-white/10 shadow-lg shadow-black/10'
+    ? "bg-[#0b1528]/95 backdrop-blur-2xl border-white/15 shadow-xl shadow-black/20"
+    : "bg-[#0b1528]/85 backdrop-blur-2xl border-white/10 shadow-lg shadow-black/10"
 
-  const brandTextColor = 'text-white'
-  const linkTextColor = 'text-white/85 hover:text-white hover:bg-white/10'
+  const brandTextColor = "text-white"
+  const linkTextColor = "text-white/85 hover:text-white hover:bg-white/10"
 
   const dashboardPath = React.useMemo(() => {
-    if (!user) return '/auth'
-    if (user.role === 'ADMIN') return '/admin'
-    if (user.role === 'MANAGER') return '/manager'
-    if (user.role === 'STAFF') return '/staff'
-    return '/dashboard'
+    if (!user) return "/auth"
+    if (user.role === "ADMIN") return "/admin"
+    if (user.role === "MANAGER") return "/manager"
+    if (user.role === "STAFF") return "/staff"
+    return "/dashboard"
   }, [user])
 
   const roleLabel = React.useMemo(() => {
-    if (!user) return ''
-    if (user.role === 'ADMIN') return t('common', 'roleSystemAdmin')
-    if (user.role === 'MANAGER') return t('common', 'roleHotelManager')
-    if (user.role === 'STAFF') return t('common', 'roleFrontDeskStaff')
-    return t('common', 'roleCustomer')
+    if (!user) return ""
+    if (user.role === "ADMIN") return t("common", "roleSystemAdmin")
+    if (user.role === "MANAGER") return t("common", "roleHotelManager")
+    if (user.role === "STAFF") return t("common", "roleFrontDeskStaff")
+    return t("common", "roleCustomer")
   }, [user, t])
 
   const handleSignOut = () => {
     logout()
     setUserMenuOpen(false)
     setMobileOpen(false)
-    router.push('/')
+    router.push("/")
   }
 
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${navBackground}`}
-      aria-label={t('common', 'primaryNavLabel')}
+      aria-label={t("common", "primaryNavLabel")}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group focus-visible:outline-none">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B38F46] flex items-center justify-center shadow-md shadow-[#D4AF37]/25 group-hover:scale-105 transition-transform duration-200">
-            <Hotel className="w-5 h-5 text-[#0B0F17]" />
+        {}
+        <Link
+          href="/"
+          className="flex items-center gap-3 group focus-visible:outline-none"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#e4bd55] to-[#B38F46] flex items-center justify-center shadow-md shadow-[#e4bd55]/25 group-hover:scale-105 transition-transform duration-200">
+            <Hotel className="w-5 h-5 text-[#07111f]" />
           </div>
           <div className="flex flex-col">
             <span
@@ -104,143 +114,182 @@ export default function NavBar() {
             >
               LuxStay
             </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] -mt-1">
-              {t('common', 'luxuryStays')}
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#e4bd55] -mt-1">
+              {t("common", "luxuryStays")}
             </span>
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {}
         <div className="hidden md:flex items-center gap-1">
           <Link
             href="/"
             prefetch={true}
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
-              pathname === '/'
-                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
-                : ''
+              pathname === "/"
+                ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                : ""
             }`}
           >
-            {t('common', 'home')}
+            {t("common", "home")}
           </Link>
           <Link
             href="/search"
             prefetch={true}
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
-              pathname.startsWith('/search')
-                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
-                : ''
+              pathname.startsWith("/search")
+                ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                : ""
             }`}
           >
-            {t('common', 'explore')}
+            {t("common", "explore")}
           </Link>
           <Link
             href="/discover"
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
-              pathname.startsWith('/discover')
-                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
-                : ''
+              pathname.startsWith("/discover")
+                ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                : ""
             }`}
           >
-            {t('common', 'discover')}
+            {t("common", "discover")}
           </Link>
           <Link
             href="/trips"
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
-              pathname.startsWith('/trips')
-                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
-                : ''
+              pathname.startsWith("/trips")
+                ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                : ""
             }`}
           >
-            {t('common', 'myTrips')}
+            {t("common", "myTrips")}
+          </Link>
+          <Link
+            href="/transportation"
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
+              pathname.startsWith("/transportation")
+                ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                : ""
+            }`}
+          >
+            {t("common", "transportation")}
           </Link>
           <Link
             href="/emergency"
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
-              pathname.startsWith('/emergency')
-                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
-                : ''
+              pathname.startsWith("/emergency")
+                ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                : ""
             }`}
           >
-            {t('common', 'safety')}
+            {t("common", "safety")}
           </Link>
 
-          {/* Role-scoped Portal Links */}
-          {user && user.role !== 'CUSTOMER' && (
+          {}
+          {user && user.role !== "CUSTOMER" && (
             <Link
               href={dashboardPath}
               prefetch={true}
               className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
-                pathname.startsWith('/dashboard') ||
-                pathname.startsWith('/admin') ||
-                pathname.startsWith('/manager') ||
-                pathname.startsWith('/staff')
-                  ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
-                  : ''
+                pathname.startsWith("/dashboard") ||
+                pathname.startsWith("/admin") ||
+                pathname.startsWith("/manager") ||
+                pathname.startsWith("/staff")
+                  ? "bg-white/15 text-white font-semibold shadow-sm border border-white/10"
+                  : ""
               }`}
             >
-              {user.role === 'ADMIN'
-                ? t('common', 'adminPortal')
-                : user.role === 'MANAGER'
-                ? t('common', 'managerConsole')
-                : t('common', 'staffDesk')}
+              {user.role === "ADMIN"
+                ? t("common", "adminPortal")
+                : user.role === "MANAGER"
+                  ? t("common", "managerConsole")
+                  : t("common", "staffDesk")}
             </Link>
           )}
         </div>
 
-        {/* Desktop User Section */}
+        {}
         <div className="hidden md:flex items-center gap-3">
-          {/* Language Switcher Toggle */}
+          {}
           <button
-            onClick={() => setLanguage(language === 'am' ? 'en' : 'am')}
+            onClick={() => setLanguage(language === "am" ? "en" : "am")}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-white/20 bg-white/10 text-xs font-bold text-white hover:bg-white/15 backdrop-blur-md transition cursor-pointer"
-            title={t('common', 'switchLanguageTitle')}
+            title={t("common", "switchLanguageTitle")}
           >
-            <span className={language === 'en' ? 'text-[#D4AF37]' : 'text-white/60'}>EN</span>
+            <span
+              className={language === "en" ? "text-[#e4bd55]" : "text-white/60"}
+            >
+              EN
+            </span>
             <span className="text-white/40">|</span>
-            <span className={language === 'am' ? 'text-[#D4AF37]' : 'text-white/60'}>አማ</span>
+            <span
+              className={language === "am" ? "text-[#e4bd55]" : "text-white/60"}
+            >
+              አማ
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 backdrop-blur-md transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e4bd55]"
+            title={isDark ? t("common", "lightMode") : t("common", "darkMode")}
+            aria-label={
+              isDark ? t("common", "lightMode") : t("common", "darkMode")
+            }
+          >
+            {isDark ? (
+              <Sun className="h-4 w-4 text-[#e4bd55]" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </button>
 
           {user ? (
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen((prev) => !prev)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 backdrop-blur-md transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 backdrop-blur-md transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e4bd55]"
                 aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
-                <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-[#0F2942] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#e4bd55] text-[#0b1528] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
                   {user.profilePhotoUrl ? (
                     <Image
                       src={user.profilePhotoUrl}
-                      alt={user.fullName || t('common', 'userFallback')}
+                      alt={user.fullName || t("common", "userFallback")}
                       width={32}
                       height={32}
                       className="h-full w-full object-cover"
                     />
+                  ) : user.fullName ? (
+                    user.fullName[0].toUpperCase()
                   ) : (
-                    user.fullName ? user.fullName[0].toUpperCase() : 'U'
+                    "U"
                   )}
                 </div>
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-bold leading-tight truncate max-w-[120px] text-white">
                     {user.fullName || user.email}
                   </span>
-                  <span className="text-[10px] text-[#D4AF37] font-semibold uppercase tracking-wider">
+                  <span className="text-[10px] text-[#e4bd55] font-semibold uppercase tracking-wider">
                     {user.role}
                   </span>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-white/70 ml-1" />
               </button>
 
-              {/* User Dropdown Menu */}
+              {}
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#0F2942]/95 backdrop-blur-2xl border border-white/15 text-white shadow-2xl p-2 z-50 animate-in fade-in-50 zoom-in-95">
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#0b1528]/95 backdrop-blur-2xl border border-white/15 text-white shadow-2xl p-2 z-50 animate-in fade-in-50 zoom-in-95">
                   <div className="px-3 py-2.5 border-b border-white/10 mb-1">
-                    <p className="text-sm font-bold text-white truncate">{user.fullName}</p>
-                    <p className="text-xs text-white/60 truncate">{user.email}</p>
+                    <p className="text-sm font-bold text-white truncate">
+                      {user.fullName}
+                    </p>
+                    <p className="text-xs text-white/60 truncate">
+                      {user.email}
+                    </p>
                     <div className="mt-2">
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#e4bd55]/15 text-[#e4bd55] border border-[#e4bd55]/30">
                         {roleLabel}
                       </span>
                     </div>
@@ -252,8 +301,8 @@ export default function NavBar() {
                     onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/85 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
                   >
-                    <LayoutDashboard className="w-4 h-4 text-[#D4AF37]" />
-                    <span>{t('common', 'dashboard')}</span>
+                    <LayoutDashboard className="w-4 h-4 text-[#e4bd55]" />
+                    <span>{t("common", "dashboard")}</span>
                   </Link>
 
                   <button
@@ -261,7 +310,7 @@ export default function NavBar() {
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-300 hover:bg-red-500/15 rounded-xl transition-colors mt-1 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 text-red-300" />
-                    <span>{t('common', 'signOut')}</span>
+                    <span>{t("common", "signOut")}</span>
                   </button>
                 </div>
               )}
@@ -271,96 +320,112 @@ export default function NavBar() {
               <Link
                 href="/auth?mode=login"
                 prefetch={true}
-                className="inline-flex items-center justify-center text-xs sm:text-sm font-medium h-9 px-4 rounded-xl border border-white/25 bg-white/5 backdrop-blur-sm text-white hover:text-white hover:bg-white/15 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                className="inline-flex items-center justify-center text-xs sm:text-sm font-medium h-9 px-4 rounded-xl border border-white/25 bg-white/5 backdrop-blur-sm text-white hover:text-white hover:bg-white/15 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e4bd55]"
               >
-                {t('common', 'signIn')}
+                {t("common", "signIn")}
               </Link>
               <Link
                 href="/auth?mode=register"
                 prefetch={true}
-                className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold h-9 px-4.5 rounded-xl bg-[#D4AF37] text-[#0B0F17] hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/25 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold h-9 px-4.5 rounded-xl bg-[#e4bd55] text-[#07111f] hover:bg-[#9b7428] shadow-md shadow-[#e4bd55]/25 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e4bd55]"
               >
-                {t('common', 'register')}
+                {t("common", "register")}
               </Link>
             </div>
           )}
         </div>
 
-        {/* Mobile Hamburger Toggle */}
+        {}
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={() => setMobileOpen((prev) => !prev)}
-            aria-label={t('common', 'toggleNavMenu')}
+            aria-label={t("common", "toggleNavMenu")}
             className="p-2.5 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors cursor-pointer"
           >
-            {mobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+            {mobileOpen ? (
+              <X className="w-5 h-5 text-white" />
+            ) : (
+              <Menu className="w-5 h-5 text-white" />
+            )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {}
       {mobileOpen && (
-        <div className="md:hidden border-t border-white/10 bg-[#0F2942]/95 backdrop-blur-2xl px-6 py-6 space-y-4 shadow-2xl text-white">
+        <div className="md:hidden border-t border-white/10 bg-[#0b1528]/95 backdrop-blur-2xl px-6 py-6 space-y-4 shadow-2xl text-white">
           <div className="flex flex-col gap-1">
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                pathname === '/'
-                  ? 'bg-white/15 text-white font-semibold border border-white/10'
-                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                pathname === "/"
+                  ? "bg-white/15 text-white font-semibold border border-white/10"
+                  : "text-white/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <Home className="w-5 h-5 text-[#D4AF37]" />
-              <span>{t('common', 'home')}</span>
+              <Home className="w-5 h-5 text-[#e4bd55]" />
+              <span>{t("common", "home")}</span>
             </Link>
             <Link
               href="/search"
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                pathname.startsWith('/search')
-                  ? 'bg-white/15 text-white font-semibold border border-white/10'
-                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                pathname.startsWith("/search")
+                  ? "bg-white/15 text-white font-semibold border border-white/10"
+                  : "text-white/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <Search className="w-5 h-5 text-[#D4AF37]" />
-              <span>{t('common', 'explore')}</span>
+              <Search className="w-5 h-5 text-[#e4bd55]" />
+              <span>{t("common", "explore")}</span>
             </Link>
             <Link
               href="/discover"
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                pathname.startsWith('/discover')
-                  ? 'bg-white/15 text-white font-semibold border border-white/10'
-                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                pathname.startsWith("/discover")
+                  ? "bg-white/15 text-white font-semibold border border-white/10"
+                  : "text-white/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <Compass className="w-5 h-5 text-[#D4AF37]" />
-              <span>{t('common', 'discover')}</span>
+              <Compass className="w-5 h-5 text-[#e4bd55]" />
+              <span>{t("common", "discover")}</span>
             </Link>
             <Link
               href="/trips"
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                pathname.startsWith('/trips')
-                  ? 'bg-white/15 text-white font-semibold border border-white/10'
-                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                pathname.startsWith("/trips")
+                  ? "bg-white/15 text-white font-semibold border border-white/10"
+                  : "text-white/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <CalendarCheck className="w-5 h-5 text-[#D4AF37]" />
-              <span>{t('common', 'myTrips')}</span>
+              <CalendarCheck className="w-5 h-5 text-[#e4bd55]" />
+              <span>{t("common", "myTrips")}</span>
+            </Link>
+            <Link
+              href="/transportation"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                pathname.startsWith("/transportation")
+                  ? "bg-white/15 text-white font-semibold border border-white/10"
+                  : "text-white/85 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <Car className="w-5 h-5 text-[#e4bd55]" />
+              <span>{t("common", "transportation")}</span>
             </Link>
             <Link
               href="/emergency"
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                pathname.startsWith('/emergency')
-                  ? 'bg-white/15 text-white font-semibold border border-white/10'
-                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                pathname.startsWith("/emergency")
+                  ? "bg-white/15 text-white font-semibold border border-white/10"
+                  : "text-white/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <Shield className="w-5 h-5 text-[#D4AF37]" />
-              <span>{t('common', 'safety')}</span>
+              <Shield className="w-5 h-5 text-[#e4bd55]" />
+              <span>{t("common", "safety")}</span>
             </Link>
 
             {user && (
@@ -368,29 +433,54 @@ export default function NavBar() {
                 href={dashboardPath}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                  pathname.startsWith('/dashboard') ||
-                  pathname.startsWith('/admin') ||
-                  pathname.startsWith('/manager') ||
-                  pathname.startsWith('/staff')
-                    ? 'bg-white/15 text-white font-semibold border border-white/10'
-                    : 'text-white/85 hover:bg-white/10 hover:text-white'
+                  pathname.startsWith("/dashboard") ||
+                  pathname.startsWith("/admin") ||
+                  pathname.startsWith("/manager") ||
+                  pathname.startsWith("/staff")
+                    ? "bg-white/15 text-white font-semibold border border-white/10"
+                    : "text-white/85 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <LayoutDashboard className="w-5 h-5 text-[#D4AF37]" />
+                <LayoutDashboard className="w-5 h-5 text-[#e4bd55]" />
                 <span>{roleLabel}</span>
               </Link>
             )}
           </div>
 
-          <div className="pt-4 border-t border-white/10">
+          <div className="flex items-center justify-between border-t border-white/10 pt-4">
+            <span className="text-sm font-medium text-white/70">
+              {isDark ? t("common", "darkMode") : t("common", "lightMode")}
+            </span>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e4bd55]"
+              title={
+                isDark ? t("common", "lightMode") : t("common", "darkMode")
+              }
+              aria-label={
+                isDark ? t("common", "lightMode") : t("common", "darkMode")
+              }
+            >
+              {isDark ? (
+                <Sun className="h-5 w-5 text-[#e4bd55]" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+
+          <div className="pt-4">
             {user ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-2">
-                  <div className="w-10 h-10 rounded-xl bg-[#D4AF37] text-[#0F2942] flex items-center justify-center font-bold">
-                    {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
+                  <div className="w-10 h-10 rounded-xl bg-[#e4bd55] text-[#0b1528] flex items-center justify-center font-bold">
+                    {user.fullName ? user.fullName[0].toUpperCase() : "U"}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white">{user.fullName}</p>
+                    <p className="text-sm font-bold text-white">
+                      {user.fullName}
+                    </p>
                     <p className="text-xs text-white/60">{user.email}</p>
                   </div>
                 </div>
@@ -400,7 +490,7 @@ export default function NavBar() {
                   className="w-full text-red-300 border-red-400/30 bg-red-500/10 hover:bg-red-500/20"
                   leftIcon={<LogOut className="w-4 h-4 text-red-300" />}
                 >
-                  {t('common', 'signOut')}
+                  {t("common", "signOut")}
                 </Button>
               </div>
             ) : (
@@ -410,14 +500,14 @@ export default function NavBar() {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center h-11 px-4 rounded-xl text-sm font-medium text-white border border-white/20 bg-white/10 hover:bg-white/15 active:scale-[0.98] transition-all text-center cursor-pointer"
                 >
-                  {t('common', 'signIn')}
+                  {t("common", "signIn")}
                 </Link>
                 <Link
                   href="/auth?mode=register"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center h-11 px-4 rounded-xl text-sm font-semibold bg-[#D4AF37] text-[#0B0F17] hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/25 active:scale-[0.98] transition-all text-center cursor-pointer"
+                  className="flex items-center justify-center h-11 px-4 rounded-xl text-sm font-semibold bg-[#e4bd55] text-[#07111f] hover:bg-[#9b7428] shadow-md shadow-[#e4bd55]/25 active:scale-[0.98] transition-all text-center cursor-pointer"
                 >
-                  {t('common', 'register')}
+                  {t("common", "register")}
                 </Link>
               </div>
             )}

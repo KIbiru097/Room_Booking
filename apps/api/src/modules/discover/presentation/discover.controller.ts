@@ -19,16 +19,52 @@ export class DiscoverController {
 
   @Public()
   @Get('destinations')
-  @ApiOperation({ summary: 'List supported destinations with verified places and hotel counts' })
+  @ApiOperation({
+    summary:
+      'List supported destinations with verified places and hotel counts',
+  })
   getDestinations(@Query('limit') limit?: string) {
-    return this.discoverService.getDestinations(limit ? Number(limit) : undefined);
+    return this.discoverService.getDestinations(
+      limit ? Number(limit) : undefined,
+    );
   }
 
   @Public()
   @Get('destinations/:cityId')
-  @ApiOperation({ summary: 'Get a destination with nearby verified places and active hotels' })
+  @ApiOperation({
+    summary: 'Get a destination with nearby verified places and active hotels',
+  })
   getDestination(@Param('cityId') cityId: string) {
     return this.discoverService.getDestination(cityId);
+  }
+
+  @Public()
+  @Get('cities/:cityId/history')
+  @ApiOperation({
+    summary: 'Get source-attributed history, stories, and culture for a city',
+  })
+  getCityHistory(@Param('cityId') cityId: string) {
+    return this.discoverService.getHistory(cityId);
+  }
+
+  @Public()
+  @Get('cities/:cityId/heritage')
+  @ApiOperation({ summary: 'List verified heritage places for a city' })
+  getCityHeritage(
+    @Param('cityId') cityId: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.discoverService.getHeritage({
+      cityId,
+      limit: limit ? Number(limit) : 20,
+    });
+  }
+
+  @Public()
+  @Get('cities/:cityId/heritage/timeline')
+  @ApiOperation({ summary: 'Get the verified historical timeline for a city' })
+  getCityTimeline(@Param('cityId') cityId: string) {
+    return this.discoverService.getHistoryTimeline(cityId);
   }
 
   @Public()
@@ -38,6 +74,23 @@ export class DiscoverController {
   })
   getNearby(@Query() query: NearbyPlacesQueryDto) {
     return this.discoverService.getNearby(query);
+  }
+
+  @Public()
+  @Get('hotels/:hotelId/nearby-heritage')
+  @ApiOperation({
+    summary: 'Find verified heritage and museum places near an active hotel',
+  })
+  getNearbyHeritage(
+    @Param('hotelId') hotelId: string,
+    @Query('radiusKm') radiusKm?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.discoverService.getNearbyHeritage(
+      hotelId,
+      radiusKm ? Number(radiusKm) : undefined,
+      limit ? Number(limit) : undefined,
+    );
   }
 
   @Public()
@@ -72,6 +125,21 @@ export class DiscoverController {
   })
   getSources() {
     return this.discoverService.getSources();
+  }
+
+  @Public()
+  @Get('places/:placeId/nearby-hotels')
+  @ApiOperation({ summary: 'Find active hotels near a verified place' })
+  getNearbyHotels(
+    @Param('placeId') placeId: string,
+    @Query('radiusKm') radiusKm?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.discoverService.getNearbyHotels(
+      placeId,
+      radiusKm ? Number(radiusKm) : undefined,
+      limit ? Number(limit) : undefined,
+    );
   }
 
   @Public()

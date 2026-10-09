@@ -22,6 +22,10 @@ import { AdminImportController } from './presentation/admin-import.controller';
 
 import { ResourceScopeHelper } from '../../common/guards/resource-scope.helper';
 import { ManagerStaffController } from './presentation/manager-staff.controller';
+import { AdminContentController } from './presentation/admin-content.controller';
+import { AdminContentService } from './application/admin-content.service';
+import { ManagerRolesController } from './presentation/manager-roles.controller';
+import { ManagerRolesService } from './application/manager-roles.service';
 
 @Module({
   controllers: [
@@ -35,6 +39,8 @@ import { ManagerStaffController } from './presentation/manager-staff.controller'
     AdminSuspensionController,
     AdminExportController,
     AdminImportController,
+    AdminContentController,
+    ManagerRolesController,
   ],
   providers: [
     AdminUsersService,
@@ -48,6 +54,8 @@ import { ManagerStaffController } from './presentation/manager-staff.controller'
     AdminImportService,
     AuditService,
     ResourceScopeHelper,
+    AdminContentService,
+    ManagerRolesService,
   ],
 })
 export class AdminModule {}

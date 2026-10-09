@@ -1,16 +1,69 @@
-'use client'
+"use client"
 
-import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { adminApi, reviewApi, hotelApi } from '@/lib/services'
-import { useAuth } from '@/lib/auth-store'
-import AuthGate from '@/components/AuthGate'
-import type { Booking, Coupon, Hotel, Payment, PlatformSetting, Review, User } from '@/lib/types'
-import { formatEthiopianBirr } from '@/lib/currency'
-import { useLanguage } from '@/lib/i18n'
-import { StatusBadge } from '@/components/ui/StatusBadge'
-const AdminAnalyticsCharts = dynamic(() => import('@/components/admin/AdminAnalyticsCharts').then((module) => module.AdminAnalyticsCharts), { ssr: false })
+// Analytics Charts State
+
+// Category Settings State Defaults
+
+// Auto-dismiss notification banners
+
+// Load countries and cities for hotel provisioning
+
+// Reject Hotel Modal
+
+// Coupon Form Modal
+
+// Setting Upsert Modal
+
+// Create User Modal (Managers / Staff / Users)
+
+// Reassign Manager Modal
+
+// Create Hotel Modal & Hotel Filter State
+
+// Platform Reports State
+
+// Hydrate category settings from loaded platform settings
+
+// Toggle User Active
+
+// Create User Handler
+
+// Reassign Hotel Manager Flow
+
+// Hotel Approval Flow
+
+// Coupon Handlers
+
+// Setting Handlers
+// Keep as string if not valid JSON
+/* Sidebar Navigation */ /* Main Panel */ /* Tab 1: Dashboard Overview */ /* 4 Primary Top Metrics */ /* Interactive Luxury Analytics Charts */ /* Tab 2: Users Management */ /* Filter and Search Bar */ /* Table */ /* Tab 3: Hotels Approval Workflow */ /* Filter and Search Bar for Hotels */ /* Tab 4: All Bookings */ /* Tab 5: Payments */ /* Tab 6: Reviews */ /* Tab 7: Coupons Management */ /* Tab 8: Platform Settings & Governance */ /* Maintenance Mode Banner Alert if Enabled */ /* 5 Functional Settings Category Cards */ /* Category 1: Financial & Commission Governance */ /* Category 2: Booking Policies & Reservation Defaults */ /* Category 3: Security & Access Controls */ /* Category 4: Notifications & Communication Gateways */ /* Category 5: Operations & Platform Maintenance (Spans Full Width on Small, 2 Cols on Large) */ /* Collapsible Section: Raw Key-Value Database Explorer */ /* Tab 9: Audit Logs */ /* Tab 10: Platform Reports & Analytics */ /* Action Buttons: Download PDF & Excel */ /* Timeframe & Category Control Bar */ /* Row 1: Timeframe Toggle */ /* Row 2: Report Category */ /* Live KPI Overview Preview */ /* Live Preview Table */ /* Modal: Reject Hotel */ /* Modal: Create Coupon */ /* Modal: Upsert Platform Setting */ /* Modal: Create Manager / User */ /* Reassign / Assign Hotel Manager Modal */ /* Modal: Create Hotel Property */ /* General Manager Assignment & Credential Creation */
+
+import dynamic from "next/dynamic"
+import { useCallback, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { adminApi, reviewApi, hotelApi } from "@/lib/services"
+import { useAuth } from "@/lib/auth-store"
+import AuthGate from "@/components/AuthGate"
+import type {
+  Booking,
+  Coupon,
+  Hotel,
+  Payment,
+  PlatformSetting,
+  Review,
+  User,
+} from "@/lib/types"
+import { formatEthiopianBirr } from "@/lib/currency"
+import { useLanguage } from "@/lib/i18n"
+import { StatusBadge } from "@/components/ui/StatusBadge"
+const AdminAnalyticsCharts = dynamic(
+  () =>
+    import("@/components/admin/AdminAnalyticsCharts").then(
+      (module) => module.AdminAnalyticsCharts,
+    ),
+  { ssr: false },
+)
 import {
   CheckCircle2,
   AlertCircle,
@@ -45,23 +98,19 @@ import {
   Upload,
   MapPin,
   ExternalLink,
-} from 'lucide-react'
+} from "lucide-react"
 
+type Tab = "Dashboard" | "Users" | "Hotels" | "Bookings" | "Payments" | "Reviews" | "Coupons" | "Settings" | "Audit Logs" | "Reports"
 
-type Tab =
-  | 'Dashboard'
-  | 'Users'
-  | 'Hotels'
-  | 'Bookings'
-  | 'Payments'
-  | 'Reviews'
-  | 'Coupons'
-  | 'Settings'
-  | 'Audit Logs'
-  | 'Reports'
-
-type Country = { id: string; name: string; code: string; cities?: Array<{ id: string; name: string }> }
-type AdminUser = User & { _count?: { bookings: number; reviews: number; favorites: number } }
+type Country = {
+  id: string
+  name: string
+  code: string
+  cities?: Array<{ id: string ;name: string }>
+}
+type AdminUser = User & {
+  _count?: { bookings: number ;reviews: number ;favorites: number }
+}
 type AuditEntry = {
   id: string
   actor?: string | { email?: string } | null
@@ -75,31 +124,61 @@ type AuditEntry = {
 }
 
 const formatMoney = (value: number | string | null | undefined) =>
-  value === null || value === undefined ? '—' : formatEthiopianBirr(value)
+  value ===
+    null ||
+  value ===
+    undefined
+    ? "—"
+    : formatEthiopianBirr(value)
 
 const formatDate = (value: string) =>
-  new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
+  new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value))
 
 const formatDateTime = (value: string) =>
   new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(value))
 
 const badge = (value: string) => {
-  if (value === 'ACTIVE' || value === 'SUCCEEDED' || value === 'CHECKED_OUT') return 'bg-green-50 text-green-700'
-  if (value === 'INACTIVE' || value === 'FAILED' || value === 'CANCELLED' || value === 'REJECTED')
-    return 'bg-red-50 text-red-600'
-  if (value === 'PENDING') return 'bg-amber-50 text-amber-700'
-  return 'bg-slate-100 text-slate-700'
+  if (
+    value ===
+      "ACTIVE" ||
+    value ===
+      "SUCCEEDED" ||
+    value ===
+      "CHECKED_OUT"
+  )
+    return "bg-green-50 text-green-700"
+  if (
+    value ===
+      "INACTIVE" ||
+    value ===
+      "FAILED" ||
+    value ===
+      "CANCELLED" ||
+    value ===
+      "REJECTED"
+  )
+    return "bg-red-50 text-red-600"
+  if (
+    value ===
+    "PENDING"
+  )
+    return "bg-amber-50 text-amber-700"
+  return "bg-slate-100 text-slate-700"
 }
 
 export default function AdminDashboardPage() {
   return (
-    <AuthGate roles={['ADMIN']}>
+    <AuthGate roles={["ADMIN"]}>
       <AdminDashboard />
     </AuthGate>
   )
@@ -112,45 +191,55 @@ function AdminDashboard() {
   const { t } = useLanguage()
 
   const tabLabels: Record<Tab, string> = {
-    Dashboard: t('admin', 'tabDashboard'),
-    Users: t('admin', 'tabUsers'),
-    Hotels: t('admin', 'tabHotels'),
-    Bookings: t('admin', 'tabBookings'),
-    Payments: t('admin', 'tabPayments'),
-    Reviews: t('admin', 'tabReviews'),
-    Coupons: t('admin', 'tabCoupons'),
-    Settings: t('admin', 'tabSettings'),
-    'Audit Logs': t('admin', 'tabAuditLogs'),
-    Reports: t('admin', 'tabReports'),
+    Dashboard: t("admin", "tabDashboard"),
+    Users: t("admin", "tabUsers"),
+    Hotels: t("admin", "tabHotels"),
+    Bookings: t("admin", "tabBookings"),
+    Payments: t("admin", "tabPayments"),
+    Reviews: t("admin", "tabReviews"),
+    Coupons: t("admin", "tabCoupons"),
+    Settings: t("admin", "tabSettings"),
+    "Audit Logs": t("admin", "tabAuditLogs"),
+    Reports: t("admin", "tabReports"),
   }
 
   const roleLabels: Record<string, string> = {
-    ADMIN: t('admin', 'roleAdmin'),
-    MANAGER: t('admin', 'roleManager'),
-    STAFF: t('admin', 'roleStaff'),
-    CUSTOMER: t('admin', 'roleCustomer'),
+    ADMIN: t("admin", "roleAdmin"),
+    MANAGER: t("admin", "roleManager"),
+    STAFF: t("admin", "roleStaff"),
+    CUSTOMER: t("admin", "roleCustomer"),
   }
 
   const bookingStatusLabels: Record<string, string> = {
-    PENDING: t('admin', 'statusPending'),
-    CONFIRMED: t('admin', 'statusConfirmed'),
-    CHECKED_IN: t('admin', 'statusCheckedIn'),
-    CHECKED_OUT: t('admin', 'statusCheckedOut'),
-    CANCELLED: t('admin', 'statusCancelled'),
-    REJECTED: t('admin', 'statusRejected'),
+    PENDING: t("admin", "statusPending"),
+    CONFIRMED: t("admin", "statusConfirmed"),
+    CHECKED_IN: t("admin", "statusCheckedIn"),
+    CHECKED_OUT: t("admin", "statusCheckedOut"),
+    CANCELLED: t("admin", "statusCancelled"),
+    REJECTED: t("admin", "statusRejected"),
   }
 
   const methodLabels: Record<string, string> = {
-    CREDIT_CARD: t('admin', 'methodCreditCard'),
-    PAYPAL: t('admin', 'methodPaypal'),
-    TELEBIRR: t('admin', 'methodTelebirr'),
-    CBE_BIRR: t('admin', 'methodCbeBirr'),
-    CASH: t('admin', 'methodCash'),
+    CREDIT_CARD: t("admin", "methodCreditCard"),
+    PAYPAL: t("admin", "methodPaypal"),
+    TELEBIRR: t("admin", "methodTelebirr"),
+    CBE_BIRR: t("admin", "methodCbeBirr"),
+    CASH: t("admin", "methodCash"),
   }
 
-  const [tab, setTab] = useState<Tab>('Dashboard')
-  const [overview, setOverview] = useState<any>({ userCount: 0, hotelCount: 0, bookingCount: 0, totalRevenue: 0 })
-  const [occupancy, setOccupancy] = useState<any>({ rooms: 0, occupiedRoomsToday: 0, occupancyRate: 0, breakdown: [] })
+  const [tab, setTab] = useState<Tab>("Dashboard")
+  const [overview, setOverview] = useState<any>({
+    userCount: 0,
+    hotelCount: 0,
+    bookingCount: 0,
+    totalRevenue: 0,
+  })
+  const [occupancy, setOccupancy] = useState<any>({
+    rooms: 0,
+    occupiedRoomsToday: 0,
+    occupancyRate: 0,
+    breakdown: [],
+  })
   const [users, setUsers] = useState<AdminUser[]>([])
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -159,19 +248,25 @@ function AdminDashboard() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [settings, setSettings] = useState<PlatformSetting[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([])
-
-  // Analytics Charts State
-  const [monthlyRevenueData, setMonthlyRevenueData] = useState<Array<{ month: string; revenue: number }>>([])
-  const [bookingTrendsData, setBookingTrendsData] = useState<Array<{ date: string; bookings: number }>>([])
-  const [mostBookedHotelsData, setMostBookedHotelsData] = useState<Array<{ hotelId: string; name: string; bookings: number }>>([])
-
-  // Category Settings State Defaults
+  const [monthlyRevenueData, setMonthlyRevenueData] = useState<Array<{
+    month: string
+    revenue: number
+  }>>([])
+  const [bookingTrendsData, setBookingTrendsData] = useState<Array<{
+    date: string
+    bookings: number
+  }>>([])
+  const [mostBookedHotelsData, setMostBookedHotelsData] = useState<Array<{
+    hotelId: string
+    name: string
+    bookings: number
+  }>>([])
   const defaultCommission = {
     platformFeePercent: 10,
     vatRate: 15,
-    defaultCurrency: 'ETB',
+    defaultCurrency: "ETB",
     minPayoutAmount: 5000,
-    payoutSchedule: 'WEEKLY',
+    payoutSchedule: "WEEKLY",
   }
   const defaultBooking = {
     holdDurationMinutes: 30,
@@ -188,46 +283,45 @@ function AdminDashboard() {
     enableAuditLogging: true,
   }
   const defaultNotifications = {
-    supportEmail: 'support@luxstay.com',
-    smsProvider: 'MOCK',
-    emailDispatchMode: 'SMTP',
+    supportEmail: "support@luxstay.com",
+    smsProvider: "MOCK",
+    emailDispatchMode: "SMTP",
     notifyOnBooking: true,
     notifyOnCancellation: true,
   }
   const defaultOperations = {
     maintenanceMode: false,
-    maintenanceMessage: 'LuxStay is currently undergoing scheduled platform optimization.',
+    maintenanceMessage:
+      "LuxStay is currently undergoing scheduled platform optimization.",
     autoApproveHotels: false,
     maxUploadSizeMb: 15,
   }
 
-  const [commissionSettings, setCommissionSettings] = useState(defaultCommission)
+  const [commissionSettings, setCommissionSettings] =
+    useState(defaultCommission)
   const [bookingSettings, setBookingSettings] = useState(defaultBooking)
   const [securitySettings, setSecuritySettings] = useState(defaultSecurity)
-  const [notificationSettings, setNotificationSettings] = useState(defaultNotifications)
+  const [notificationSettings, setNotificationSettings] =
+    useState(defaultNotifications)
   const [operationSettings, setOperationSettings] = useState(defaultOperations)
   const [savingCategory, setSavingCategory] = useState<string | null>(null)
   const [rawSettingsOpen, setRawSettingsOpen] = useState(false)
 
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [successBanner, setSuccessBanner] = useState('')
+  const [error, setError] = useState("")
+  const [successBanner, setSuccessBanner] = useState("")
   const [acting, setActing] = useState<string | null>(null)
-
-  // Auto-dismiss notification banners
   useEffect(() => {
     if (!successBanner) return
-    const timer = setTimeout(() => setSuccessBanner(''), 5000)
+    const timer = setTimeout(() => setSuccessBanner(""), 5000)
     return () => clearTimeout(timer)
   }, [successBanner])
 
   useEffect(() => {
     if (!error) return
-    const timer = setTimeout(() => setError(''), 7000)
+    const timer = setTimeout(() => setError(""), 7000)
     return () => clearTimeout(timer)
   }, [error])
-
-  // Load countries and cities for hotel provisioning
   useEffect(() => {
     hotelApi
       .countries()
@@ -237,104 +331,97 @@ function AdminDashboard() {
         }
       })
       .catch((err) => {
-        console.warn('Failed to load countries for admin hotel creation:', err)
+        console.warn("Failed to load countries for admin hotel creation:", err)
       })
   }, [])
-
-  // Reject Hotel Modal
   const [rejectHotelTarget, setRejectHotelTarget] = useState<Hotel | null>(null)
-  const [rejectReason, setRejectReason] = useState('')
+  const [rejectReason, setRejectReason] = useState("")
   const [rejectingSubmitting, setRejectingSubmitting] = useState(false)
-
-  // Coupon Form Modal
   const [couponModalOpen, setCouponModalOpen] = useState(false)
   const [couponForm, setCouponForm] = useState({
-    code: '',
-    discountType: 'PERCENTAGE',
+    code: "",
+    discountType: "PERCENTAGE",
     value: 15,
     validFrom: new Date().toISOString().slice(0, 10),
     validTo: new Date(Date.now() + 86400000 * 30).toISOString().slice(0, 10),
     usageLimit: 100,
-    minBookingAmount: '',
+    minBookingAmount: "",
   })
   const [couponSaving, setCouponSaving] = useState(false)
-
-  // Setting Upsert Modal
   const [settingModalOpen, setSettingModalOpen] = useState(false)
   const [settingForm, setSettingForm] = useState({
-    key: '',
-    value: '',
-    description: '',
+    key: "",
+    value: "",
+    description: "",
   })
   const [settingSaving, setSettingSaving] = useState(false)
-
-  // Create User Modal (Managers / Staff / Users)
   const [createUserModalOpen, setCreateUserModalOpen] = useState(false)
   const [createUserForm, setCreateUserForm] = useState<{
     fullName: string
     email: string
     password: string
     phone: string
-    role: 'CUSTOMER' | 'MANAGER' | 'STAFF' | 'ADMIN'
+    role: "CUSTOMER" | "MANAGER" | "STAFF" | "ADMIN"
     hotelId: string
   }>({
-    fullName: '',
-    email: '',
-    password: '',
-    phone: '',
-    role: 'MANAGER',
-    hotelId: '',
+    fullName: "",
+    email: "",
+    password: "",
+    phone: "",
+    role: "MANAGER",
+    hotelId: "",
   })
   const [showPassword, setShowPassword] = useState(false)
   const [userCreating, setUserCreating] = useState(false)
-  const [createUserError, setCreateUserError] = useState('')
-  const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | 'MANAGER' | 'STAFF' | 'CUSTOMER' | 'ADMIN'>('ALL')
-  const [userSearch, setUserSearch] = useState('')
-
-  // Reassign Manager Modal
-  const [assignManagerHotel, setAssignManagerHotel] = useState<Hotel | null>(null)
-  const [selectedManagerUserId, setSelectedManagerUserId] = useState('')
+  const [createUserError, setCreateUserError] = useState("")
+  const [userRoleFilter, setUserRoleFilter] =
+    useState<"ALL" | "MANAGER" | "STAFF" | "CUSTOMER" | "ADMIN">("ALL")
+  const [userSearch, setUserSearch] = useState("")
+  const [assignManagerHotel, setAssignManagerHotel] = useState<Hotel | null>(
+    null,
+  )
+  const [selectedManagerUserId, setSelectedManagerUserId] = useState("")
   const [assigningManager, setAssigningManager] = useState(false)
-
-  // Create Hotel Modal & Hotel Filter State
   const [createHotelModalOpen, setCreateHotelModalOpen] = useState(false)
   const [countries, setCountries] = useState<Country[]>([])
   const [createHotelForm, setCreateHotelForm] = useState({
-    name: '',
-    description: '',
-    countryId: '',
-    cityId: '',
-    address: '',
+    name: "",
+    description: "",
+    countryId: "",
+    cityId: "",
+    address: "",
     starRating: 4,
-    status: 'ACTIVE' as 'ACTIVE' | 'PENDING_APPROVAL',
-    managerId: '',
+    status: "ACTIVE" as "ACTIVE" | "PENDING_APPROVAL",
+    managerId: "",
   })
   const [hotelImagesFiles, setHotelImagesFiles] = useState<File[]>([])
-  const [createHotelError, setCreateHotelError] = useState('')
+  const [createHotelError, setCreateHotelError] = useState("")
   const [creatingHotel, setCreatingHotel] = useState(false)
-  const [hotelSearch, setHotelSearch] = useState('')
-  const [hotelStatusFilter, setHotelStatusFilter] = useState<'ALL' | 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ALL')
-  const [hotelManagerMode, setHotelManagerMode] = useState<'EXISTING' | 'CREATE_NEW'>('EXISTING')
+  const [hotelSearch, setHotelSearch] = useState("")
+  const [hotelStatusFilter, setHotelStatusFilter] =
+    useState<"ALL" | "PENDING" | "ACTIVE" | "INACTIVE" | "SUSPENDED">("ALL")
+  const [hotelManagerMode, setHotelManagerMode] =
+    useState<"EXISTING" | "CREATE_NEW">("EXISTING")
   const [newHotelManagerForm, setNewHotelManagerForm] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    phone: '',
+    fullName: "",
+    email: "",
+    password: "",
+    phone: "",
   })
-  const [showNewHotelManagerPassword, setShowNewHotelManagerPassword] = useState(false)
-
-  // Platform Reports State
-  const [reportType, setReportType] = useState<
-    'overview' | 'booking' | 'revenue' | 'occupancy' | 'customer' | 'cancellation'
-  >('overview')
-  const [reportPeriod, setReportPeriod] = useState<
-    'daily' | 'weekly' | 'monthly' | 'yearly'
-  >('monthly')
-  const [reportDownloading, setReportDownloading] = useState<'pdf' | 'excel' | null>(null)
+  const [showNewHotelManagerPassword, setShowNewHotelManagerPassword] =
+    useState(false)
+  const [reportType, setReportType] =
+    useState<"overview" | "booking" | "revenue" | "occupancy" | "customer" | "cancellation">(
+      "overview",
+    )
+  const [reportPeriod, setReportPeriod] =
+    useState<"daily" | "weekly" | "monthly" | "yearly">("monthly")
+  const [reportDownloading, setReportDownloading] =
+    useState<"pdf" | "excel" | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    setError('')
+    setError("")
     try {
       const [
         overviewData,
@@ -351,14 +438,28 @@ function AdminDashboard() {
         trendsData,
         topHotelsData,
       ] = await Promise.all([
-        adminApi.overview().catch(() => ({ userCount: 0, hotelCount: 0, bookingCount: 0, totalRevenue: 0 })),
-        adminApi.occupancy().catch(() => ({ rooms: 0, occupiedRoomsToday: 0, occupancyRate: 0, breakdown: [] })),
-        adminApi.users({ pageSize: '30' }).catch(() => ({ data: [] })),
-        adminApi.hotels({ pageSize: '30' }).catch(() => ({ data: [] })),
-        adminApi.bookings({ pageSize: '30' }).catch(() => ({ data: [] })),
-        adminApi.payments({ pageSize: '30' }).catch(() => ({ data: [] })),
-        adminApi.reviews({ pageSize: '30' }).catch(() => ({ data: [] })),
-        adminApi.auditLogs({ pageSize: '30' }).catch(() => []),
+        adminApi
+          .overview()
+          .catch(() => ({
+            userCount: 0,
+            hotelCount: 0,
+            bookingCount: 0,
+            totalRevenue: 0,
+          })),
+        adminApi
+          .occupancy()
+          .catch(() => ({
+            rooms: 0,
+            occupiedRoomsToday: 0,
+            occupancyRate: 0,
+            breakdown: [],
+          })),
+        adminApi.users({ pageSize: "30" }).catch(() => ({ data: [] })),
+        adminApi.hotels({ pageSize: "30" }).catch(() => ({ data: [] })),
+        adminApi.bookings({ pageSize: "30" }).catch(() => ({ data: [] })),
+        adminApi.payments({ pageSize: "30" }).catch(() => ({ data: [] })),
+        adminApi.reviews({ pageSize: "30" }).catch(() => ({ data: [] })),
+        adminApi.auditLogs({ pageSize: "30" }).catch(() => []),
         adminApi.coupons().catch(() => []),
         adminApi.settings().catch(() => []),
         adminApi.monthlyRevenue(12).catch(() => []),
@@ -373,26 +474,79 @@ function AdminDashboard() {
       setBookings(bookingsData.data)
       setPayments(paymentsData.data)
       setReviews(reviewsData.data)
-      setAuditLogs(Array.isArray(auditData) ? (auditData as AuditEntry[]) : (auditData?.data ?? []))
+      setAuditLogs(
+        Array.isArray(auditData)
+          ? auditData as AuditEntry[]
+          : (auditData?.data ??
+              []),
+      )
       setCoupons(couponsData)
       setSettings(settingsData)
       setMonthlyRevenueData(monthlyRevData)
       setBookingTrendsData(trendsData)
       setMostBookedHotelsData(topHotelsData)
-
-      // Hydrate category settings from loaded platform settings
-      const comm = settingsData.find((s) => s.key === 'COMMISSION_AND_TAX')?.value
-      if (comm && typeof comm === 'object') setCommissionSettings((p) => ({ ...p, ...comm }))
-      const book = settingsData.find((s) => s.key === 'BOOKING_POLICIES')?.value
-      if (book && typeof book === 'object') setBookingSettings((p) => ({ ...p, ...book }))
-      const sec = settingsData.find((s) => s.key === 'SECURITY_AND_AUTH')?.value
-      if (sec && typeof sec === 'object') setSecuritySettings((p) => ({ ...p, ...sec }))
-      const notif = settingsData.find((s) => s.key === 'NOTIFICATIONS_GATEWAY')?.value
-      if (notif && typeof notif === 'object') setNotificationSettings((p) => ({ ...p, ...notif }))
-      const ops = settingsData.find((s) => s.key === 'PLATFORM_OPERATIONS')?.value
-      if (ops && typeof ops === 'object') setOperationSettings((p) => ({ ...p, ...ops }))
+      const comm = settingsData.find(
+        (s) =>
+          s.key ===
+          "COMMISSION_AND_TAX",
+      )?.value
+      if (
+        comm &&
+        typeof comm ===
+          "object"
+      )
+        setCommissionSettings((p) => ({ ...p, ...comm }))
+      const book = settingsData.find(
+        (s) =>
+          s.key ===
+          "BOOKING_POLICIES",
+      )?.value
+      if (
+        book &&
+        typeof book ===
+          "object"
+      )
+        setBookingSettings((p) => ({ ...p, ...book }))
+      const sec = settingsData.find(
+        (s) =>
+          s.key ===
+          "SECURITY_AND_AUTH",
+      )?.value
+      if (
+        sec &&
+        typeof sec ===
+          "object"
+      )
+        setSecuritySettings((p) => ({ ...p, ...sec }))
+      const notif = settingsData.find(
+        (s) =>
+          s.key ===
+          "NOTIFICATIONS_GATEWAY",
+      )?.value
+      if (
+        notif &&
+        typeof notif ===
+          "object"
+      )
+        setNotificationSettings((p) => ({ ...p, ...notif }))
+      const ops = settingsData.find(
+        (s) =>
+          s.key ===
+          "PLATFORM_OPERATIONS",
+      )?.value
+      if (
+        ops &&
+        typeof ops ===
+          "object"
+      )
+        setOperationSettings((p) => ({ ...p, ...ops }))
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t('admin', 'loadError'))
+      setError(
+        caught instanceof
+          Error
+          ? caught.message
+          : t("admin", "loadError"),
+      )
     } finally {
       setLoading(false)
     }
@@ -400,28 +554,42 @@ function AdminDashboard() {
 
   const handleSaveCategory = async (key: string, value: any, label: string) => {
     setSavingCategory(key)
-    setError('')
+    setError("")
     try {
       await adminApi.upsertSetting(key, { value })
-      setSuccessBanner(t('admin', 'categoryUpdated', { label }))
+      setSuccessBanner(t("admin", "categoryUpdated", { label }))
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'categoryUpdateFailed', { label }))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "categoryUpdateFailed", { label }),
+      )
     } finally {
       setSavingCategory(null)
     }
   }
 
-  const handleResetCategory = async (key: string, defaultVal: any, label: string) => {
-    if (!confirm(t('admin', 'categoryResetConfirm', { label }))) return
+  const handleResetCategory = async (
+    key: string,
+    defaultVal: any,
+    label: string,
+  ) => {
+    if (!confirm(t("admin", "categoryResetConfirm", { label }))) return
     setSavingCategory(key)
-    setError('')
+    setError("")
     try {
       await adminApi.upsertSetting(key, { value: defaultVal })
-      setSuccessBanner(t('admin', 'categoryResetDone', { label }))
+      setSuccessBanner(t("admin", "categoryResetDone", { label }))
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'categoryResetFailed', { label }))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "categoryResetFailed", { label }),
+      )
     } finally {
       setSavingCategory(null)
     }
@@ -430,117 +598,158 @@ function AdminDashboard() {
   useEffect(() => {
     void load()
   }, [load])
-
-  // Toggle User Active
   const toggleUser = async (target: AdminUser) => {
     setActing(target.id)
-    setError('')
+    setError("")
     try {
       await adminApi.setUserActive(target.id, !target.isActive)
       setSuccessBanner(
         target.isActive
-          ? t('admin', 'userSuspended', { name: target.fullName })
-          : t('admin', 'userRestored', { name: target.fullName }),
+          ? t("admin", "userSuspended", { name: target.fullName })
+          : t("admin", "userRestored", { name: target.fullName }),
       )
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t('admin', 'userStatusUpdateFailed'))
+      setError(
+        caught instanceof
+          Error
+          ? caught.message
+          : t("admin", "userStatusUpdateFailed"),
+      )
     } finally {
       setActing(null)
     }
   }
-
-  // Create User Handler
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     setUserCreating(true)
-    setCreateUserError('')
+    setCreateUserError("")
     try {
       const res = await adminApi.createUser({
         fullName: createUserForm.fullName.trim(),
         email: createUserForm.email.trim().toLowerCase(),
         password: createUserForm.password,
-        phone: createUserForm.phone.trim() || undefined,
+        phone:
+          createUserForm.phone.trim() ||
+          undefined,
         role: createUserForm.role,
-        hotelId: createUserForm.hotelId || undefined,
+        hotelId:
+          createUserForm.hotelId ||
+          undefined,
       })
-      const assignedHotel = hotels.find((h) => h.id === createUserForm.hotelId)
-      const roleLabel = roleLabels[res.role] ?? res.role
+      const assignedHotel = hotels.find(
+        (h) =>
+          h.id ===
+          createUserForm.hotelId,
+      )
+      const roleLabel =
+        roleLabels[res.role] ??
+        res.role
       setSuccessBanner(
         assignedHotel
-          ? t('admin', 'accountCreatedWithHotel', {
+          ? t("admin", "accountCreatedWithHotel", {
               name: res.fullName,
               role: roleLabel,
               hotel: assignedHotel.name,
             })
-          : t('admin', 'accountCreated', { name: res.fullName, role: roleLabel }),
+          : t("admin", "accountCreated", {
+              name: res.fullName,
+              role: roleLabel,
+            }),
       )
       setCreateUserModalOpen(false)
       setCreateUserForm({
-        fullName: '',
-        email: '',
-        password: '',
-        phone: '',
-        role: 'MANAGER',
-        hotelId: '',
+        fullName: "",
+        email: "",
+        password: "",
+        phone: "",
+        role: "MANAGER",
+        hotelId: "",
       })
       setShowPassword(false)
       await load()
     } catch (err) {
-      setCreateUserError(err instanceof Error ? err.message : t('admin', 'createUserFailed'))
+      setCreateUserError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "createUserFailed"),
+      )
     } finally {
       setUserCreating(false)
     }
   }
 
   const filteredUsers = users.filter((u) => {
-    const matchesRole = userRoleFilter === 'ALL' || u.role === userRoleFilter
+    const matchesRole =
+      userRoleFilter ===
+        "ALL" ||
+      u.role ===
+        userRoleFilter
     const q = userSearch.trim().toLowerCase()
     const matchesSearch =
       !q ||
       u.fullName.toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
       (u.phone && u.phone.toLowerCase().includes(q))
-    return matchesRole && matchesSearch
+    return (
+      matchesRole &&
+      matchesSearch
+    )
   })
-
-  // Reassign Hotel Manager Flow
   const handleAssignManagerSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!assignManagerHotel) return
     setAssigningManager(true)
-    setError('')
+    setError("")
     try {
-      await adminApi.reassignManager(assignManagerHotel.id, selectedManagerUserId)
-      const newManager = users.find((u) => u.id === selectedManagerUserId)
+      await adminApi.reassignManager(
+        assignManagerHotel.id,
+        selectedManagerUserId,
+      )
+      const newManager = users.find(
+        (u) =>
+          u.id ===
+          selectedManagerUserId,
+      )
       setSuccessBanner(
         newManager
-          ? t('admin', 'hotelManagerUpdatedTo', {
+          ? t("admin", "hotelManagerUpdatedTo", {
               name: assignManagerHotel.name,
               manager: newManager.fullName,
             })
-          : t('admin', 'hotelManagerUpdated', { name: assignManagerHotel.name }),
+          : t("admin", "hotelManagerUpdated", {
+              name: assignManagerHotel.name,
+            }),
       )
       setAssignManagerHotel(null)
-      setSelectedManagerUserId('')
+      setSelectedManagerUserId("")
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'assignManagerFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "assignManagerFailed"),
+      )
     } finally {
       setAssigningManager(false)
     }
   }
-
-  // Hotel Approval Flow
   const approveHotel = async (hotel: Hotel) => {
     setActing(hotel.id)
-    setError('')
+    setError("")
     try {
       await adminApi.approveHotel(hotel.id)
-      setSuccessBanner(t('admin', 'hotelApproved', { name: hotel.name }))
+      setSuccessBanner(t("admin", "hotelApproved", { name: hotel.name }))
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'approveHotelFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "approveHotelFailed"),
+      )
     } finally {
       setActing(null)
     }
@@ -550,15 +759,22 @@ function AdminDashboard() {
     e.preventDefault()
     if (!rejectHotelTarget || !rejectReason.trim()) return
     setRejectingSubmitting(true)
-    setError('')
+    setError("")
     try {
       await adminApi.rejectHotel(rejectHotelTarget.id, rejectReason.trim())
-      setSuccessBanner(t('admin', 'hotelRejected', { name: rejectHotelTarget.name }))
+      setSuccessBanner(
+        t("admin", "hotelRejected", { name: rejectHotelTarget.name }),
+      )
       setRejectHotelTarget(null)
-      setRejectReason('')
+      setRejectReason("")
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'rejectHotelFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "rejectHotelFailed"),
+      )
     } finally {
       setRejectingSubmitting(false)
     }
@@ -566,22 +782,42 @@ function AdminDashboard() {
 
   const toggleHotelStatus = async (hotel: Hotel) => {
     setActing(hotel.id)
-    setError('')
+    setError("")
     try {
-      const nextStatus = hotel.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+      const nextStatus =
+        hotel.status ===
+        "ACTIVE"
+          ? "INACTIVE"
+          : "ACTIVE"
       await adminApi.setHotelStatus(hotel.id, nextStatus)
-      setSuccessBanner(nextStatus === 'ACTIVE' ? t('admin', 'hotelActivated') : t('admin', 'hotelDeactivated'))
+      setSuccessBanner(
+        nextStatus ===
+          "ACTIVE"
+          ? t("admin", "hotelActivated")
+          : t("admin", "hotelDeactivated"),
+      )
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'changeHotelStatusFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "changeHotelStatusFailed"),
+      )
     } finally {
       setActing(null)
     }
   }
 
   const handleCountryChange = (countryId: string) => {
-    const selected = countries.find((c) => c.id === countryId)
-    const firstCityId = selected?.cities?.[0]?.id || ''
+    const selected = countries.find(
+      (c) =>
+        c.id ===
+        countryId,
+    )
+    const firstCityId =
+      selected?.cities?.[0]?.id ||
+      ""
     setCreateHotelForm((prev) => ({
       ...prev,
       countryId,
@@ -590,10 +826,21 @@ function AdminDashboard() {
   }
 
   const generateRandomPassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*'
-    let pwd = ''
-    for (let i = 0; i < 12; i++) {
-      pwd += chars.charAt(Math.floor(Math.random() * chars.length))
+    const chars =
+      "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*"
+    let pwd = ""
+    for (
+      let i = 0;
+      i <
+      12;
+      i++
+    ) {
+      pwd += chars.charAt(
+        Math.floor(
+          Math.random() *
+            chars.length,
+        ),
+      )
     }
     setNewHotelManagerForm((prev) => ({ ...prev, password: pwd }))
     setShowNewHotelManagerPassword(true)
@@ -601,44 +848,75 @@ function AdminDashboard() {
 
   const handleCreateHotelSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setCreateHotelError('')
+    setCreateHotelError("")
 
     const trimmedName = createHotelForm.name.trim()
     const trimmedAddress = createHotelForm.address.trim()
     const trimmedDesc = createHotelForm.description.trim()
 
-    if (!trimmedName || trimmedName.length < 2) {
-      setCreateHotelError('Hotel name must be at least 2 characters.')
+    if (
+      !trimmedName ||
+      trimmedName.length <
+        2
+    ) {
+      setCreateHotelError("Hotel name must be at least 2 characters.")
       return
     }
     if (!createHotelForm.cityId) {
-      setCreateHotelError('Please select a valid city for the hotel location.')
+      setCreateHotelError("Please select a valid city for the hotel location.")
       return
     }
-    if (!trimmedAddress || trimmedAddress.length < 3) {
-      setCreateHotelError('Street address must be at least 3 characters.')
+    if (
+      !trimmedAddress ||
+      trimmedAddress.length <
+        3
+    ) {
+      setCreateHotelError("Street address must be at least 3 characters.")
       return
     }
-    if (!trimmedDesc || trimmedDesc.length < 10) {
-      setCreateHotelError('Please provide a descriptive overview of at least 10 characters.')
+    if (
+      !trimmedDesc ||
+      trimmedDesc.length <
+        10
+    ) {
+      setCreateHotelError(
+        "Please provide a descriptive overview of at least 10 characters.",
+      )
       return
     }
 
-    if (hotelManagerMode === 'CREATE_NEW') {
+    if (
+      hotelManagerMode ===
+      "CREATE_NEW"
+    ) {
       const mgrName = newHotelManagerForm.fullName.trim()
       const mgrEmail = newHotelManagerForm.email.trim().toLowerCase()
       const mgrPassword = newHotelManagerForm.password
 
-      if (!mgrName || mgrName.length < 2) {
-        setCreateHotelError('New manager full name must be at least 2 characters.')
+      if (
+        !mgrName ||
+        mgrName.length <
+          2
+      ) {
+        setCreateHotelError(
+          "New manager full name must be at least 2 characters.",
+        )
         return
       }
       if (!mgrEmail || !/^\S+@\S+\.\S+$/.test(mgrEmail)) {
-        setCreateHotelError('Please provide a valid work email address for the new manager.')
+        setCreateHotelError(
+          "Please provide a valid work email address for the new manager.",
+        )
         return
       }
-      if (!mgrPassword || mgrPassword.length < 8) {
-        setCreateHotelError('Manager account password must be at least 8 characters.')
+      if (
+        !mgrPassword ||
+        mgrPassword.length <
+          8
+      ) {
+        setCreateHotelError(
+          "Manager account password must be at least 8 characters.",
+        )
         return
       }
     }
@@ -647,13 +925,18 @@ function AdminDashboard() {
     try {
       let assignedManagerId: string | undefined = undefined
 
-      if (hotelManagerMode === 'CREATE_NEW') {
+      if (
+        hotelManagerMode ===
+        "CREATE_NEW"
+      ) {
         const newMgr = await adminApi.createUser({
           fullName: newHotelManagerForm.fullName.trim(),
           email: newHotelManagerForm.email.trim().toLowerCase(),
           password: newHotelManagerForm.password,
-          phone: newHotelManagerForm.phone.trim() || undefined,
-          role: 'MANAGER',
+          phone:
+            newHotelManagerForm.phone.trim() ||
+            undefined,
+          role: "MANAGER",
         })
         assignedManagerId = newMgr.id
       } else if (createHotelForm.managerId) {
@@ -674,44 +957,61 @@ function AdminDashboard() {
 
       const created = await adminApi.createHotel(payload)
 
-      if (hotelImagesFiles.length > 0 && created?.id) {
+      if (
+        hotelImagesFiles.length >
+          0 &&
+        created?.id
+      ) {
         try {
           await adminApi.addHotelImages(created.id, hotelImagesFiles)
         } catch (imgErr) {
-          console.warn('Hotel created but image upload encountered an issue:', imgErr)
+          console.warn(
+            "Hotel created but image upload encountered an issue:",
+            imgErr,
+          )
         }
       }
 
       const successMsg =
-        hotelManagerMode === 'CREATE_NEW'
+        hotelManagerMode ===
+        "CREATE_NEW"
           ? `Hotel "${trimmedName}" created and new Manager account provisioned for "${newHotelManagerForm.fullName.trim()}" (${newHotelManagerForm.email.trim().toLowerCase()})!`
           : `Hotel property "${trimmedName}" created and listed successfully!`
 
       setSuccessBanner(successMsg)
       setCreateHotelModalOpen(false)
       setHotelImagesFiles([])
-      setHotelManagerMode('EXISTING')
+      setHotelManagerMode("EXISTING")
       setNewHotelManagerForm({
-        fullName: '',
-        email: '',
-        password: '',
-        phone: '',
+        fullName: "",
+        email: "",
+        password: "",
+        phone: "",
       })
       setShowNewHotelManagerPassword(false)
       const defaultCountry = countries[0]
       setCreateHotelForm({
-        name: '',
-        description: '',
-        countryId: defaultCountry?.id || '',
-        cityId: defaultCountry?.cities?.[0]?.id || '',
-        address: '',
+        name: "",
+        description: "",
+        countryId:
+          defaultCountry?.id ||
+          "",
+        cityId:
+          defaultCountry?.cities?.[0]?.id ||
+          "",
+        address: "",
         starRating: 4,
-        status: 'ACTIVE',
-        managerId: '',
+        status: "ACTIVE",
+        managerId: "",
       })
       await load()
     } catch (err) {
-      setCreateHotelError(err instanceof Error ? err.message : 'Failed to create hotel property.')
+      setCreateHotelError(
+        err instanceof
+          Error
+          ? err.message
+          : "Failed to create hotel property.",
+      )
     } finally {
       setCreatingHotel(false)
     }
@@ -728,32 +1028,50 @@ function AdminDashboard() {
 
     if (!matchesSearch) return false
 
-    if (hotelStatusFilter === 'ALL') return true
-    if (hotelStatusFilter === 'PENDING') {
-      return h.status === 'PENDING' || h.status === 'PENDING_APPROVAL'
+    if (
+      hotelStatusFilter ===
+      "ALL"
+    )
+      return true
+    if (
+      hotelStatusFilter ===
+      "PENDING"
+    ) {
+      return (
+        h.status ===
+          "PENDING" ||
+        h.status ===
+          "PENDING_APPROVAL"
+      )
     }
-    return h.status === hotelStatusFilter
+    return (
+      h.status ===
+      hotelStatusFilter
+    )
   })
 
   const removeReview = async (target: Review) => {
     setActing(target.id)
-    setError('')
+    setError("")
     try {
       await reviewApi.remove(target.id)
-      setSuccessBanner(t('admin', 'reviewDeleted'))
+      setSuccessBanner(t("admin", "reviewDeleted"))
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t('admin', 'deleteReviewFailed'))
+      setError(
+        caught instanceof
+          Error
+          ? caught.message
+          : t("admin", "deleteReviewFailed"),
+      )
     } finally {
       setActing(null)
     }
   }
-
-  // Coupon Handlers
   const handleSaveCoupon = async (e: React.FormEvent) => {
     e.preventDefault()
     setCouponSaving(true)
-    setError('')
+    setError("")
     try {
       await adminApi.createCoupon({
         code: couponForm.code.trim().toUpperCase(),
@@ -762,13 +1080,22 @@ function AdminDashboard() {
         validFrom: new Date(couponForm.validFrom).toISOString(),
         validTo: new Date(couponForm.validTo).toISOString(),
         usageLimit: Number(couponForm.usageLimit),
-        minBookingAmount: couponForm.minBookingAmount ? Number(couponForm.minBookingAmount) : undefined,
+        minBookingAmount: couponForm.minBookingAmount
+          ? Number(couponForm.minBookingAmount)
+          : undefined,
       })
-      setSuccessBanner(t('admin', 'couponCreated', { code: couponForm.code.toUpperCase() }))
+      setSuccessBanner(
+        t("admin", "couponCreated", { code: couponForm.code.toUpperCase() }),
+      )
       setCouponModalOpen(false)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'createCouponFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "createCouponFailed"),
+      )
     } finally {
       setCouponSaving(false)
     }
@@ -776,133 +1103,153 @@ function AdminDashboard() {
 
   const toggleCouponActive = async (coupon: Coupon) => {
     setActing(coupon.id)
-    setError('')
+    setError("")
     try {
       await adminApi.updateCoupon(coupon.id, { isActive: !coupon.isActive })
-      setSuccessBanner(t('admin', 'couponUpdated', { code: coupon.code }))
+      setSuccessBanner(t("admin", "couponUpdated", { code: coupon.code }))
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'updateCouponFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "updateCouponFailed"),
+      )
     } finally {
       setActing(null)
     }
   }
 
   const handleDeleteCoupon = async (couponId: string) => {
-    if (!confirm(t('admin', 'confirmDeleteCoupon'))) return
-    setError('')
+    if (!confirm(t("admin", "confirmDeleteCoupon"))) return
+    setError("")
     try {
       await adminApi.deleteCoupon(couponId)
-      setSuccessBanner(t('admin', 'couponDeleted'))
+      setSuccessBanner(t("admin", "couponDeleted"))
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'deleteCouponFailed'))
+      setError(
+        err instanceof
+          Error
+          ? err.message
+          : t("admin", "deleteCouponFailed"),
+      )
     }
   }
-
-  // Setting Handlers
   const handleSaveSetting = async (e: React.FormEvent) => {
     e.preventDefault()
     setSettingSaving(true)
-    setError('')
+    setError("")
     try {
       let parsedValue: any = settingForm.value
       try {
         parsedValue = JSON.parse(settingForm.value)
-      } catch {
-        // Keep as string if not valid JSON
-      }
+      } catch {}
       await adminApi.upsertSetting(settingForm.key.trim(), {
         value: parsedValue,
         description: settingForm.description.trim() || undefined,
       })
-      setSuccessBanner(t('admin', 'settingSaved', { key: settingForm.key }))
+      setSuccessBanner(t("admin", "settingSaved", { key: settingForm.key }))
       setSettingModalOpen(false)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'saveSettingFailed'))
+      setError(
+        err instanceof Error ? err.message : t("admin", "saveSettingFailed"),
+      )
     } finally {
       setSettingSaving(false)
     }
   }
 
   const handleDeleteSetting = async (key: string) => {
-    if (!confirm(t('admin', 'confirmDeleteSetting', { key }))) return
-    setError('')
+    if (!confirm(t("admin", "confirmDeleteSetting", { key }))) return
+    setError("")
     try {
       await adminApi.deleteSetting(key)
-      setSuccessBanner(t('admin', 'settingRemoved', { key }))
+      setSuccessBanner(t("admin", "settingRemoved", { key }))
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('admin', 'deleteSettingFailed'))
+      setError(
+        err instanceof Error ? err.message : t("admin", "deleteSettingFailed"),
+      )
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-[#64748B]">
-        {t('admin', 'loadingAdminConsole')}
+      <div className="min-h-screen bg-[#f3efe5] flex items-center justify-center text-[#64748B]">
+        {t("admin", "loadingAdminConsole")}
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
-      {/* Sidebar Navigation */}
+    <div className="min-h-screen bg-[#f3efe5] flex">
+      {}
       <aside className="w-64 bg-white border-r border-[#E2E8F0] hidden lg:flex flex-col flex-shrink-0">
         <div className="p-6 border-b border-[#E2E8F0]">
-          <div className="w-12 h-12 rounded-full bg-[#0F172A] flex items-center justify-center text-white font-bold text-lg shadow-sm">
-            {user?.fullName.charAt(0).toUpperCase() || 'A'}
+          <div className="w-12 h-12 rounded-full bg-[#182333] flex items-center justify-center text-white font-bold text-lg shadow-sm">
+            {user?.fullName.charAt(0).toUpperCase() || "A"}
           </div>
-          <div className="font-semibold text-[#0F172A] mt-3">{user?.fullName || t('admin', 'administratorFallback')}</div>
-          <div className="text-[#64748B] text-xs">{t('admin', 'adminConsoleSubtitle')}</div>
+          <div className="font-semibold text-[#182333] mt-3">
+            {user?.fullName || t("admin", "administratorFallback")}
+          </div>
+          <div className="text-[#64748B] text-xs">
+            {t("admin", "adminConsoleSubtitle")}
+          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {(
-            [
-              'Dashboard',
-              'Users',
-              'Hotels',
-              'Bookings',
-              'Payments',
-              'Reviews',
-              'Coupons',
-              'Settings',
-              'Audit Logs',
-              'Reports',
-            ] as Tab[]
-          ).map((item) => (
+          {([
+            "Dashboard",
+            "Users",
+            "Hotels",
+            "Bookings",
+            "Payments",
+            "Reviews",
+            "Coupons",
+            "Settings",
+            "Audit Logs",
+            "Reports",
+          ] as Tab[]).map((item) => (
             <button
               key={item}
               onClick={() => {
                 setTab(item)
-                setError('')
-                setSuccessBanner('')
+                setError("")
+                setSuccessBanner("")
               }}
               className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                tab === item ? 'bg-[#2563EB] text-white shadow-sm' : 'text-[#64748B] hover:bg-[#F1F5F9]'
+                tab === item
+                  ? "bg-[#2563EB] text-white shadow-sm"
+                  : "text-[#64748B] hover:bg-[#F1F5F9]"
               }`}
             >
               {tabLabels[item]}
             </button>
           ))}
+          <Link
+            href="/admin/content"
+            className="mt-3 flex w-full items-center rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#64748B] hover:bg-[#F1F5F9]"
+          >
+            Content &amp; Places
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-[#E2E8F0]">
           <button
             onClick={() => {
               logout()
-              router.push('/')
+              router.push("/")
             }}
             className="w-full text-left px-3.5 py-2.5 text-sm text-red-500 rounded-xl hover:bg-red-50 transition-colors"
           >
-            {t('admin', 'signOut')}
+            {t("admin", "signOut")}
           </button>
         </div>
       </aside>
 
-      {/* Main Panel */}
+      {}
       <main className="flex-1 p-6 lg:p-8 max-w-6xl overflow-auto">
         {error && (
           <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
@@ -911,9 +1258,9 @@ function AdminDashboard() {
               <span>{error}</span>
             </div>
             <button
-              onClick={() => setError('')}
+              onClick={() => setError("")}
               className="text-rose-600 hover:text-rose-900 p-1.5 rounded-lg hover:bg-rose-100/60 transition-colors cursor-pointer"
-              aria-label={t('admin', 'dismissNotification')}
+              aria-label={t("admin", "dismissNotification")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -927,140 +1274,210 @@ function AdminDashboard() {
               <span>{successBanner}</span>
             </div>
             <button
-              onClick={() => setSuccessBanner('')}
+              onClick={() => setSuccessBanner("")}
               className="text-emerald-600 hover:text-emerald-900 p-1.5 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer"
-              aria-label={t('admin', 'dismissNotification')}
+              aria-label={t("admin", "dismissNotification")}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
+        {}
+        {tab === "Dashboard" &&
+          (() => {
+            const userCountDisplay =
+              overview?.userCount ?? overview?.users?.total ?? users.length
+            const hotelCountDisplay =
+              overview?.hotelCount ?? overview?.hotels?.total ?? hotels.length
+            const bookingCountDisplay =
+              overview?.bookingCount ??
+              overview?.bookings?.total ??
+              bookings.length
+            const revenueDisplay =
+              overview?.totalRevenue ?? overview?.revenue?.total ?? 0
 
-        {/* Tab 1: Dashboard Overview */}
-        {tab === 'Dashboard' && (() => {
-          const userCountDisplay = overview?.userCount ?? overview?.users?.total ?? users.length
-          const hotelCountDisplay = overview?.hotelCount ?? overview?.hotels?.total ?? hotels.length
-          const bookingCountDisplay = overview?.bookingCount ?? overview?.bookings?.total ?? bookings.length
-          const revenueDisplay = overview?.totalRevenue ?? overview?.revenue?.total ?? 0
+            const occupancyRateNum =
+              typeof occupancy?.occupancyRate === "number" &&
+              !isNaN(occupancy.occupancyRate)
+                ? occupancy.occupancyRate
+                : 0
+            const occupiedRoomsCount =
+              occupancy?.occupiedRoomsToday ?? occupancy?.occupiedToday ?? 0
+            const activeRoomsCount =
+              occupancy?.rooms ?? occupancy?.totalRooms ?? 0
 
-          const occupancyRateNum =
-            typeof occupancy?.occupancyRate === 'number' && !isNaN(occupancy.occupancyRate)
-              ? occupancy.occupancyRate
-              : 0
-          const occupiedRoomsCount = occupancy?.occupiedRoomsToday ?? occupancy?.occupiedToday ?? 0
-          const activeRoomsCount = occupancy?.rooms ?? occupancy?.totalRooms ?? 0
-
-          return (
-            <div>
-              <div className="flex justify-between items-start mb-8">
-                <div>
-                  <h1 className="font-serif text-3xl text-[#0F172A]">{t('admin', 'overviewTitle')}</h1>
-                  <p className="text-[#64748B]">{t('admin', 'overviewSubtitle')}</p>
-                </div>
-                <button
-                  onClick={() => void load()}
-                  className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm cursor-pointer transition-colors"
-                >
-                  {t('admin', 'refresh')}
-                </button>
-              </div>
-
-              {/* 4 Primary Top Metrics */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {[
-                  { label: t('admin', 'statTotalUsers'), value: userCountDisplay, icon: Users, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-                  { label: t('admin', 'statHotelsListed'), value: hotelCountDisplay, icon: Building2, color: 'text-amber-600 bg-amber-50 border-amber-100' },
-                  { label: t('admin', 'statTotalBookings'), value: bookingCountDisplay, icon: Calendar, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-                  { label: t('admin', 'statPlatformRevenue'), value: formatMoney(revenueDisplay), icon: CreditCard, color: 'text-purple-600 bg-purple-50 border-purple-100' },
-                ].map((item) => {
-                  const IconComp = item.icon
-                  return (
-                    <div key={item.label} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm flex flex-col justify-between">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 border ${item.color}`}>
-                        <IconComp className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-[#0F172A] text-2xl">{item.value}</div>
-                        <div className="text-[#64748B] text-xs mt-0.5">{item.label}</div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Interactive Luxury Analytics Charts */}
-              <AdminAnalyticsCharts
-                monthlyRevenue={monthlyRevenueData}
-                bookingTrends={bookingTrendsData}
-                topHotels={mostBookedHotelsData}
-                occupancyBreakdown={occupancy?.breakdown}
-              />
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm">
-                  <h2 className="font-bold text-[#0F172A] mb-2">{t('admin', 'todayOccupancyRate')}</h2>
-                  <div className="text-4xl font-bold text-[#0F172A]">{(occupancyRateNum * 100).toFixed(1)}%</div>
-                  <p className="text-[#64748B] text-sm mt-1">
-                    {t('admin', 'occupiedOfActiveRooms', { occupied: occupiedRoomsCount, active: activeRoomsCount })}
-                  </p>
-                  <div className="bg-[#F1F5F9] h-2.5 rounded-full mt-5 overflow-hidden">
-                    <div
-                      className="bg-[#2563EB] h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, occupancyRateNum * 100)}%` }}
-                    />
+            return (
+              <div>
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <h1 className="font-serif text-3xl text-[#182333]">
+                      {t("admin", "overviewTitle")}
+                    </h1>
+                    <p className="text-[#64748B]">
+                      {t("admin", "overviewSubtitle")}
+                    </p>
                   </div>
+                  <button
+                    onClick={() => void load()}
+                    className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm cursor-pointer transition-colors"
+                  >
+                    {t("admin", "refresh")}
+                  </button>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-                  <div className="p-5 border-b border-[#F1F5F9] flex justify-between items-center">
-                    <h2 className="font-bold text-[#0F172A]">{t('admin', 'latestReservations')}</h2>
-                    <button onClick={() => setTab('Bookings')} className="text-sm text-[#2563EB] font-semibold cursor-pointer">
-                      {t('admin', 'viewAll')}
-                    </button>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {bookings.slice(0, 5).map((b) => (
-                      <div key={b.id} className="flex items-center gap-3 px-5 py-3">
-                        <div className="flex-1">
-                          <div className="font-medium text-[#0F172A] text-sm">{b.hotel?.name || t('admin', 'hotelStay')}</div>
-                          <div className="text-[#64748B] text-xs">{formatDate(b.createdAt)}</div>
+                {}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  {[
+                    {
+                      label: t("admin", "statTotalUsers"),
+                      value: userCountDisplay,
+                      icon: Users,
+                      color: "text-blue-600 bg-blue-50 border-blue-100",
+                    },
+                    {
+                      label: t("admin", "statHotelsListed"),
+                      value: hotelCountDisplay,
+                      icon: Building2,
+                      color: "text-amber-600 bg-amber-50 border-amber-100",
+                    },
+                    {
+                      label: t("admin", "statTotalBookings"),
+                      value: bookingCountDisplay,
+                      icon: Calendar,
+                      color:
+                        "text-emerald-600 bg-emerald-50 border-emerald-100",
+                    },
+                    {
+                      label: t("admin", "statPlatformRevenue"),
+                      value: formatMoney(revenueDisplay),
+                      icon: CreditCard,
+                      color: "text-purple-600 bg-purple-50 border-purple-100",
+                    },
+                  ].map((item) => {
+                    const IconComp = item.icon
+                    return (
+                      <div
+                        key={item.label}
+                        className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm flex flex-col justify-between"
+                      >
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 border ${item.color}`}
+                        >
+                          <IconComp className="w-5 h-5" />
                         </div>
-                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${badge(b.status)}`}>
-                          {bookingStatusLabels[b.status] ?? b.status}
-                        </span>
+                        <div>
+                          <div className="font-bold text-[#182333] text-2xl">
+                            {item.value}
+                          </div>
+                          <div className="text-[#64748B] text-xs mt-0.5">
+                            {item.label}
+                          </div>
+                        </div>
                       </div>
-                    ))}
-                    {!bookings.length && (
-                      <p className="py-8 text-center text-xs text-slate-400">{t('admin', 'emptyDashboardBookings')}</p>
-                    )}
+                    )
+                  })}
+                </div>
+
+                {}
+                <AdminAnalyticsCharts
+                  monthlyRevenue={monthlyRevenueData}
+                  bookingTrends={bookingTrendsData}
+                  topHotels={mostBookedHotelsData}
+                  occupancyBreakdown={occupancy?.breakdown}
+                />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm">
+                    <h2 className="font-bold text-[#182333] mb-2">
+                      {t("admin", "todayOccupancyRate")}
+                    </h2>
+                    <div className="text-4xl font-bold text-[#182333]">
+                      {(occupancyRateNum * 100).toFixed(1)}%
+                    </div>
+                    <p className="text-[#64748B] text-sm mt-1">
+                      {t("admin", "occupiedOfActiveRooms", {
+                        occupied: occupiedRoomsCount,
+                        active: activeRoomsCount,
+                      })}
+                    </p>
+                    <div className="bg-[#F1F5F9] h-2.5 rounded-full mt-5 overflow-hidden">
+                      <div
+                        className="bg-[#2563EB] h-2.5 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, occupancyRateNum * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+                    <div className="p-5 border-b border-[#F1F5F9] flex justify-between items-center">
+                      <h2 className="font-bold text-[#182333]">
+                        {t("admin", "latestReservations")}
+                      </h2>
+                      <button
+                        onClick={() => setTab("Bookings")}
+                        className="text-sm text-[#2563EB] font-semibold cursor-pointer"
+                      >
+                        {t("admin", "viewAll")}
+                      </button>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {bookings.slice(0, 5).map((b) => (
+                        <div
+                          key={b.id}
+                          className="flex items-center gap-3 px-5 py-3"
+                        >
+                          <div className="flex-1">
+                            <div className="font-medium text-[#182333] text-sm">
+                              {b.hotel?.name || t("admin", "hotelStay")}
+                            </div>
+                            <div className="text-[#64748B] text-xs">
+                              {formatDate(b.createdAt)}
+                            </div>
+                          </div>
+                          <span
+                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${badge(b.status)}`}
+                          >
+                            {bookingStatusLabels[b.status] ?? b.status}
+                          </span>
+                        </div>
+                      ))}
+                      {!bookings.length && (
+                        <p className="py-8 text-center text-xs text-slate-400">
+                          {t("admin", "emptyDashboardBookings")}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )
-        })()}
+            )
+          })()}
 
-        {/* Tab 2: Users Management */}
-        {tab === 'Users' && (
+        {}
+        {tab === "Users" && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'usersTitle')}</h1>
+                <h1 className="font-bold text-[#182333] text-2xl mb-1">
+                  {t("admin", "usersTitle")}
+                </h1>
                 <p className="text-[#64748B] text-sm">
-                  {t('admin', 'usersSubtitle', { count: users.length })}
+                  {t("admin", "usersSubtitle", { count: users.length })}
                 </p>
               </div>
               <button
                 onClick={() => {
-                  setCreateUserError('')
+                  setCreateUserError("")
                   setCreateUserForm({
-                    fullName: '',
-                    email: '',
-                    password: '',
-                    phone: '',
-                    role: 'MANAGER',
-                    hotelId: '',
+                    fullName: "",
+                    email: "",
+                    password: "",
+                    phone: "",
+                    role: "MANAGER",
+                    hotelId: "",
                   })
                   setShowPassword(false)
                   setCreateUserModalOpen(true)
@@ -1068,15 +1485,24 @@ function AdminDashboard() {
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors shrink-0 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>{t('admin', 'createManagerUser')}</span>
+                <span>{t("admin", "createManagerUser")}</span>
               </button>
             </div>
 
-            {/* Filter and Search Bar */}
+            {}
             <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between mb-4">
               <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-                {(['ALL', 'MANAGER', 'STAFF', 'CUSTOMER', 'ADMIN'] as const).map((r) => {
-                  const count = r === 'ALL' ? users.length : users.filter((u) => u.role === r).length
+                {([
+                  "ALL",
+                  "MANAGER",
+                  "STAFF",
+                  "CUSTOMER",
+                  "ADMIN",
+                ] as const).map((r) => {
+                  const count =
+                    r === "ALL"
+                      ? users.length
+                      : users.filter((u) => u.role === r).length
                   const active = userRoleFilter === r
                   return (
                     <button
@@ -1084,14 +1510,18 @@ function AdminDashboard() {
                       onClick={() => setUserRoleFilter(r)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
                         active
-                          ? 'bg-white text-[#0F172A] shadow-sm'
-                          : 'text-[#64748B] hover:text-[#0F172A]'
+                          ? "bg-white text-[#182333] shadow-sm"
+                          : "text-[#64748B] hover:text-[#182333]"
                       }`}
                     >
-                      <span>{r === 'ALL' ? t('admin', 'allRoles') : roleLabels[r]}</span>
+                      <span>
+                        {r === "ALL" ? t("admin", "allRoles") : roleLabels[r]}
+                      </span>
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                          active ? 'bg-slate-100 text-slate-700' : 'bg-slate-200/70 text-slate-500'
+                          active
+                            ? "bg-slate-100 text-slate-700"
+                            : "bg-slate-200/70 text-slate-500"
                         }`}
                       >
                         {count}
@@ -1105,34 +1535,44 @@ function AdminDashboard() {
                 <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder={t('admin', 'searchNameEmail')}
+                  placeholder={t("admin", "searchNameEmail")}
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                 />
               </div>
             </div>
 
-            {/* Table */}
+            {}
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
+                <thead className="text-xs text-[#64748B] uppercase bg-[#f3efe5]">
                   <tr>
-                    <th className="px-5 py-3">{t('admin', 'colNameEmail')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colRole')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colAssignedHotel')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colBookings')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colStatus')}</th>
-                    <th className="px-5 py-3 text-right">{t('admin', 'colAction')}</th>
+                    <th className="px-5 py-3">{t("admin", "colNameEmail")}</th>
+                    <th className="px-5 py-3">{t("admin", "colRole")}</th>
+                    <th className="px-5 py-3">
+                      {t("admin", "colAssignedHotel")}
+                    </th>
+                    <th className="px-5 py-3">{t("admin", "colBookings")}</th>
+                    <th className="px-5 py-3">{t("admin", "colStatus")}</th>
+                    <th className="px-5 py-3 text-right">
+                      {t("admin", "colAction")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredUsers.map((target) => {
-                    const managedHotel = hotels.find((h) => h.managerId === target.id || h.manager?.id === target.id)
+                    const managedHotel = hotels.find(
+                      (h) =>
+                        h.managerId === target.id ||
+                        h.manager?.id === target.id,
+                    )
                     return (
                       <tr key={target.id} className="hover:bg-slate-50">
                         <td className="px-5 py-3">
-                          <div className="font-medium text-[#0F172A] text-sm">{target.fullName}</div>
+                          <div className="font-medium text-[#182333] text-sm">
+                            {target.fullName}
+                          </div>
                           <div className="text-[#64748B] text-xs flex items-center gap-1 mt-0.5">
                             <Mail className="w-3 h-3 text-slate-400 shrink-0" />
                             <span>{target.email}</span>
@@ -1147,13 +1587,13 @@ function AdminDashboard() {
                         <td className="px-5 py-3 text-sm font-semibold">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${
-                              target.role === 'ADMIN'
-                                ? 'bg-purple-50 text-purple-700 border border-purple-200/60'
-                                : target.role === 'MANAGER'
-                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/60'
-                                : target.role === 'STAFF'
-                                ? 'bg-sky-50 text-sky-700 border border-sky-200/60'
-                                : 'bg-slate-100 text-slate-700'
+                              target.role === "ADMIN"
+                                ? "bg-purple-50 text-purple-700 border border-purple-200/60"
+                                : target.role === "MANAGER"
+                                  ? "bg-indigo-50 text-indigo-700 border border-indigo-200/60"
+                                  : target.role === "STAFF"
+                                    ? "bg-sky-50 text-sky-700 border border-sky-200/60"
+                                    : "bg-slate-100 text-slate-700"
                             }`}
                           >
                             {roleLabels[target.role] ?? target.role}
@@ -1163,24 +1603,35 @@ function AdminDashboard() {
                           {managedHotel ? (
                             <div className="flex items-center gap-1 text-slate-700 font-medium">
                               <HotelIcon className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
-                              <span className="truncate max-w-[160px]" title={managedHotel.name}>
+                              <span
+                                className="truncate max-w-[160px]"
+                                title={managedHotel.name}
+                              >
                                 {managedHotel.name}
                               </span>
                             </div>
-                          ) : target.role === 'MANAGER' ? (
-                            <span className="text-amber-600 italic">{t('admin', 'unassigned')}</span>
+                          ) : target.role === "MANAGER" ? (
+                            <span className="text-amber-600 italic">
+                              {t("admin", "unassigned")}
+                            </span>
                           ) : (
                             <span className="text-slate-400">—</span>
                           )}
                         </td>
-                        <td className="px-5 py-3 text-sm text-[#64748B]">{target._count?.bookings ?? 0}</td>
+                        <td className="px-5 py-3 text-sm text-[#64748B]">
+                          {target._count?.bookings ?? 0}
+                        </td>
                         <td className="px-5 py-3">
                           <span
                             className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                              target.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+                              target.isActive
+                                ? "bg-green-50 text-green-700"
+                                : "bg-red-50 text-red-600"
                             }`}
                           >
-                            {target.isActive ? t('admin', 'activeLabel') : t('admin', 'inactiveLabel')}
+                            {target.isActive
+                              ? t("admin", "activeLabel")
+                              : t("admin", "inactiveLabel")}
                           </span>
                         </td>
                         <td className="px-5 py-3 text-right">
@@ -1190,10 +1641,10 @@ function AdminDashboard() {
                             className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] disabled:opacity-50 cursor-pointer"
                           >
                             {acting === target.id
-                              ? t('admin', 'updating')
+                              ? t("admin", "updating")
                               : target.isActive
-                                ? t('admin', 'suspend')
-                                : t('admin', 'restore')}
+                                ? t("admin", "suspend")
+                                : t("admin", "restore")}
                           </button>
                         </td>
                       </tr>
@@ -1201,8 +1652,11 @@ function AdminDashboard() {
                   })}
                   {!filteredUsers.length && (
                     <tr>
-                      <td colSpan={6} className="px-5 py-8 text-center text-[#64748B] text-sm">
-                        {t('admin', 'emptyUsers')}
+                      <td
+                        colSpan={6}
+                        className="px-5 py-8 text-center text-[#64748B] text-sm"
+                      >
+                        {t("admin", "emptyUsers")}
                       </td>
                     </tr>
                   )}
@@ -1212,36 +1666,40 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 3: Hotels Approval Workflow */}
-        {tab === 'Hotels' && (
+        {}
+        {tab === "Hotels" && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'hotelsTitle')}</h1>
-                <p className="text-[#64748B] text-sm">{t('admin', 'hotelsSubtitle')}</p>
+                <h1 className="font-bold text-[#182333] text-2xl mb-1">
+                  {t("admin", "hotelsTitle")}
+                </h1>
+                <p className="text-[#64748B] text-sm">
+                  {t("admin", "hotelsSubtitle")}
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  setCreateHotelError('')
+                  setCreateHotelError("")
                   const defaultCountry = countries[0]
                   setCreateHotelForm({
-                    name: '',
-                    description: '',
-                    countryId: defaultCountry?.id || '',
-                    cityId: defaultCountry?.cities?.[0]?.id || '',
-                    address: '',
+                    name: "",
+                    description: "",
+                    countryId: defaultCountry?.id || "",
+                    cityId: defaultCountry?.cities?.[0]?.id || "",
+                    address: "",
                     starRating: 4,
-                    status: 'ACTIVE',
-                    managerId: '',
+                    status: "ACTIVE",
+                    managerId: "",
                   })
                   setHotelImagesFiles([])
-                  setHotelManagerMode('EXISTING')
+                  setHotelManagerMode("EXISTING")
                   setNewHotelManagerForm({
-                    fullName: '',
-                    email: '',
-                    password: '',
-                    phone: '',
+                    fullName: "",
+                    email: "",
+                    password: "",
+                    phone: "",
                   })
                   setShowNewHotelManagerPassword(false)
                   setCreateHotelModalOpen(true)
@@ -1253,36 +1711,37 @@ function AdminDashboard() {
               </button>
             </div>
 
-            {/* Filter and Search Bar for Hotels */}
+            {}
             <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between mb-4">
               <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-                {(
-                  [
-                    { id: 'ALL', label: 'All Hotels', count: hotels.length },
-                    {
-                      id: 'PENDING',
-                      label: 'Pending',
-                      count: hotels.filter(
-                        (h) => h.status === 'PENDING' || h.status === 'PENDING_APPROVAL'
-                      ).length,
-                    },
-                    {
-                      id: 'ACTIVE',
-                      label: 'Active',
-                      count: hotels.filter((h) => h.status === 'ACTIVE').length,
-                    },
-                    {
-                      id: 'INACTIVE',
-                      label: 'Inactive',
-                      count: hotels.filter((h) => h.status === 'INACTIVE').length,
-                    },
-                    {
-                      id: 'SUSPENDED',
-                      label: 'Suspended',
-                      count: hotels.filter((h) => h.status === 'SUSPENDED').length,
-                    },
-                  ] as const
-                ).map((item) => {
+                {([
+                  { id: "ALL", label: "All Hotels", count: hotels.length },
+                  {
+                    id: "PENDING",
+                    label: "Pending",
+                    count: hotels.filter(
+                      (h) =>
+                        h.status === "PENDING" ||
+                        h.status === "PENDING_APPROVAL",
+                    ).length,
+                  },
+                  {
+                    id: "ACTIVE",
+                    label: "Active",
+                    count: hotels.filter((h) => h.status === "ACTIVE").length,
+                  },
+                  {
+                    id: "INACTIVE",
+                    label: "Inactive",
+                    count: hotels.filter((h) => h.status === "INACTIVE").length,
+                  },
+                  {
+                    id: "SUSPENDED",
+                    label: "Suspended",
+                    count: hotels.filter((h) => h.status === "SUSPENDED")
+                      .length,
+                  },
+                ] as const).map((item) => {
                   const active = hotelStatusFilter === item.id
                   return (
                     <button
@@ -1291,16 +1750,16 @@ function AdminDashboard() {
                       onClick={() => setHotelStatusFilter(item.id)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                         active
-                          ? 'bg-white text-[#2563EB] shadow-xs'
-                          : 'text-[#64748B] hover:text-[#0F172A]'
+                          ? "bg-white text-[#2563EB] shadow-xs"
+                          : "text-[#64748B] hover:text-[#182333]"
                       }`}
                     >
                       <span>{item.label}</span>
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                           active
-                            ? 'bg-blue-50 text-[#2563EB]'
-                            : 'bg-slate-200 text-slate-600'
+                            ? "bg-blue-50 text-[#2563EB]"
+                            : "bg-slate-200 text-slate-600"
                         }`}
                       >
                         {item.count}
@@ -1317,12 +1776,12 @@ function AdminDashboard() {
                   placeholder="Search hotels by name, city, address..."
                   value={hotelSearch}
                   onChange={(e) => setHotelSearch(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 border border-[#E2E8F0] rounded-xl text-xs bg-white text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  className="w-full pl-9 pr-8 py-2 border border-[#E2E8F0] rounded-xl text-xs bg-white text-[#182333] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                 />
                 {hotelSearch && (
                   <button
                     type="button"
-                    onClick={() => setHotelSearch('')}
+                    onClick={() => setHotelSearch("")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
                   >
                     ×
@@ -1333,19 +1792,28 @@ function AdminDashboard() {
 
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
+                <thead className="text-xs text-[#64748B] uppercase bg-[#f3efe5]">
                   <tr>
-                    <th className="px-5 py-3">{t('admin', 'colHotelProperty')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colLocation')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colRating')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colGeneralManager')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colStatus')}</th>
-                    <th className="px-5 py-3 text-right">{t('admin', 'colApprovalActions')}</th>
+                    <th className="px-5 py-3">
+                      {t("admin", "colHotelProperty")}
+                    </th>
+                    <th className="px-5 py-3">{t("admin", "colLocation")}</th>
+                    <th className="px-5 py-3">{t("admin", "colRating")}</th>
+                    <th className="px-5 py-3">
+                      {t("admin", "colGeneralManager")}
+                    </th>
+                    <th className="px-5 py-3">{t("admin", "colStatus")}</th>
+                    <th className="px-5 py-3 text-right">
+                      {t("admin", "colApprovalActions")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredHotels.map((hotel) => (
-                    <tr key={hotel.id} className="hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={hotel.id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           {hotel.images && hotel.images.length > 0 ? (
@@ -1360,7 +1828,7 @@ function AdminDashboard() {
                             </div>
                           )}
                           <div>
-                            <div className="font-semibold text-[#0F172A] text-sm flex items-center gap-1.5">
+                            <div className="font-semibold text-[#182333] text-sm flex items-center gap-1.5">
                               <span>{hotel.name}</span>
                               <a
                                 href={`/hotel/${hotel.id}`}
@@ -1372,19 +1840,25 @@ function AdminDashboard() {
                                 <ExternalLink className="w-3.5 h-3.5" />
                               </a>
                             </div>
-                            <div className="text-xs text-[#94A3B8] font-mono">{hotel.id}</div>
+                            <div className="text-xs text-[#94A3B8] font-mono">
+                              {hotel.id}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3 text-sm text-[#64748B]">
                         <div className="flex items-center gap-1 text-slate-700 font-medium">
                           <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{hotel.city?.name || 'City'}</span>
+                          <span>{hotel.city?.name || "City"}</span>
                           {hotel.city?.country && (
-                            <span className="text-slate-400 text-xs">({hotel.city.country.name})</span>
+                            <span className="text-slate-400 text-xs">
+                              ({hotel.city.country.name})
+                            </span>
                           )}
                         </div>
-                        <div className="text-xs text-slate-500 truncate max-w-xs">{hotel.address}</div>
+                        <div className="text-xs text-slate-500 truncate max-w-xs">
+                          {hotel.address}
+                        </div>
                       </td>
                       <td className="px-5 py-3 text-sm">
                         <div className="flex items-center gap-1 text-amber-600 font-semibold">
@@ -1395,31 +1869,37 @@ function AdminDashboard() {
                       <td className="px-5 py-3 text-xs">
                         {hotel.manager ? (
                           <div className="flex flex-col gap-0.5">
-                            <span className="font-semibold text-[#0F172A]">{hotel.manager.fullName}</span>
-                            <span className="text-[#64748B] text-[11px]">{hotel.manager.email}</span>
+                            <span className="font-semibold text-[#182333]">
+                              {hotel.manager.fullName}
+                            </span>
+                            <span className="text-[#64748B] text-[11px]">
+                              {hotel.manager.email}
+                            </span>
                             <button
                               type="button"
                               onClick={() => {
                                 setAssignManagerHotel(hotel)
-                                setSelectedManagerUserId(hotel.managerId || '')
+                                setSelectedManagerUserId(hotel.managerId || "")
                               }}
                               className="text-[11px] font-semibold text-[#2563EB] hover:underline text-left cursor-pointer mt-0.5"
                             >
-                              {t('admin', 'changeManager')}
+                              {t("admin", "changeManager")}
                             </button>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className="text-amber-600 italic">{t('admin', 'unassigned')}</span>
+                            <span className="text-amber-600 italic">
+                              {t("admin", "unassigned")}
+                            </span>
                             <button
                               type="button"
                               onClick={() => {
                                 setAssignManagerHotel(hotel)
-                                setSelectedManagerUserId('')
+                                setSelectedManagerUserId("")
                               }}
                               className="px-2 py-0.5 bg-blue-50 text-[#2563EB] hover:bg-blue-100 rounded text-[11px] font-semibold cursor-pointer"
                             >
-                              {t('admin', 'assign')}
+                              {t("admin", "assign")}
                             </button>
                           </div>
                         )}
@@ -1428,24 +1908,25 @@ function AdminDashboard() {
                         <StatusBadge status={hotel.status} size="sm" />
                       </td>
                       <td className="px-5 py-3 text-right space-x-2 whitespace-nowrap">
-                        {hotel.status === 'PENDING' || hotel.status === 'PENDING_APPROVAL' ? (
+                        {hotel.status === "PENDING" ||
+                        hotel.status === "PENDING_APPROVAL" ? (
                           <>
                             <button
                               disabled={acting === hotel.id}
                               onClick={() => approveHotel(hotel)}
                               className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm cursor-pointer"
                             >
-                              {t('admin', 'approve')}
+                              {t("admin", "approve")}
                             </button>
                             <button
                               disabled={acting === hotel.id}
                               onClick={() => {
                                 setRejectHotelTarget(hotel)
-                                setRejectReason('')
+                                setRejectReason("")
                               }}
                               className="px-3 py-1 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold cursor-pointer"
                             >
-                              {t('admin', 'reject')}
+                              {t("admin", "reject")}
                             </button>
                           </>
                         ) : (
@@ -1454,7 +1935,9 @@ function AdminDashboard() {
                             onClick={() => toggleHotelStatus(hotel)}
                             className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] cursor-pointer"
                           >
-                            {hotel.status === 'ACTIVE' ? t('admin', 'suspendDeactivate') : t('admin', 'activate')}
+                            {hotel.status === "ACTIVE"
+                              ? t("admin", "suspendDeactivate")
+                              : t("admin", "activate")}
                           </button>
                         )}
                       </td>
@@ -1462,43 +1945,46 @@ function AdminDashboard() {
                   ))}
                   {!filteredHotels.length && (
                     <tr>
-                      <td colSpan={6} className="px-5 py-12 text-center text-[#64748B]">
+                      <td
+                        colSpan={6}
+                        className="px-5 py-12 text-center text-[#64748B]"
+                      >
                         <div className="max-w-sm mx-auto flex flex-col items-center">
                           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-3">
                             <Building2 className="w-6 h-6" />
                           </div>
                           <h4 className="font-semibold text-slate-800 text-base mb-1">
-                            {hotelSearch || hotelStatusFilter !== 'ALL'
-                              ? 'No hotels match your filters'
-                              : 'No hotel properties listed'}
+                            {hotelSearch || hotelStatusFilter !== "ALL"
+                              ? "No hotels match your filters"
+                              : "No hotel properties listed"}
                           </h4>
                           <p className="text-xs text-slate-500 mb-4 text-center">
-                            {hotelSearch || hotelStatusFilter !== 'ALL'
-                              ? 'Try adjusting your search query or switching the status filter tab.'
-                              : 'Get started by creating and onboarding the first hotel listing.'}
+                            {hotelSearch || hotelStatusFilter !== "ALL"
+                              ? "Try adjusting your search query or switching the status filter tab."
+                              : "Get started by creating and onboarding the first hotel listing."}
                           </p>
                           <button
                             type="button"
                             onClick={() => {
-                              setCreateHotelError('')
+                              setCreateHotelError("")
                               const defaultCountry = countries[0]
                               setCreateHotelForm({
-                                name: '',
-                                description: '',
-                                countryId: defaultCountry?.id || '',
-                                cityId: defaultCountry?.cities?.[0]?.id || '',
-                                address: '',
+                                name: "",
+                                description: "",
+                                countryId: defaultCountry?.id || "",
+                                cityId: defaultCountry?.cities?.[0]?.id || "",
+                                address: "",
                                 starRating: 4,
-                                status: 'ACTIVE',
-                                managerId: '',
+                                status: "ACTIVE",
+                                managerId: "",
                               })
                               setHotelImagesFiles([])
-                              setHotelManagerMode('EXISTING')
+                              setHotelManagerMode("EXISTING")
                               setNewHotelManagerForm({
-                                fullName: '',
-                                email: '',
-                                password: '',
-                                phone: '',
+                                fullName: "",
+                                email: "",
+                                password: "",
+                                phone: "",
                               })
                               setShowNewHotelManagerPassword(false)
                               setCreateHotelModalOpen(true)
@@ -1518,78 +2004,119 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 4: All Bookings */}
-        {tab === 'Bookings' && (
+        {}
+        {tab === "Bookings" && (
           <div>
-            <h1 className="font-bold text-[#0F172A] text-2xl mb-6">{t('admin', 'bookingsTitle')}</h1>
+            <h1 className="font-bold text-[#182333] text-2xl mb-6">
+              {t("admin", "bookingsTitle")}
+            </h1>
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden divide-y divide-slate-100">
               {bookings.map((b) => (
-                <div key={b.id} className="p-5 flex items-center justify-between">
+                <div
+                  key={b.id}
+                  className="p-5 flex items-center justify-between"
+                >
                   <div>
-                    <div className="font-semibold text-[#0F172A] text-sm">
-                      {b.hotel?.name || t('admin', 'hotelBooking')} <span className="text-xs text-[#94A3B8] font-mono">#{b.id.slice(-8)}</span>
+                    <div className="font-semibold text-[#182333] text-sm">
+                      {b.hotel?.name || t("admin", "hotelBooking")}{" "}
+                      <span className="text-xs text-[#94A3B8] font-mono">
+                        #{b.id.slice(-8)}
+                      </span>
                     </div>
                     <div className="text-xs text-[#64748B] mt-0.5 flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{formatDate(b.checkIn)} → {formatDate(b.checkOut)}</span>
+                      <span>
+                        {formatDate(b.checkIn)} → {formatDate(b.checkOut)}
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-sm text-[#0F172A]">{formatMoney(b.totalPrice)}</div>
+                    <div className="font-bold text-sm text-[#182333]">
+                      {formatMoney(b.totalPrice)}
+                    </div>
                     <div className="mt-1 flex justify-end">
                       <StatusBadge status={b.status} size="sm" />
                     </div>
                   </div>
                 </div>
               ))}
-              {!bookings.length && <p className="p-10 text-center text-[#64748B]">{t('admin', 'emptyBookings')}</p>}
+              {!bookings.length && (
+                <p className="p-10 text-center text-[#64748B]">
+                  {t("admin", "emptyBookings")}
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 5: Payments */}
-        {tab === 'Payments' && (
+        {}
+        {tab === "Payments" && (
           <div>
-            <h1 className="font-bold text-[#0F172A] text-2xl mb-6">{t('admin', 'paymentsTitle')}</h1>
+            <h1 className="font-bold text-[#182333] text-2xl mb-6">
+              {t("admin", "paymentsTitle")}
+            </h1>
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden divide-y divide-slate-100">
               {payments.map((p) => (
-                <div key={p.id} className="p-5 flex items-center justify-between">
+                <div
+                  key={p.id}
+                  className="p-5 flex items-center justify-between"
+                >
                   <div>
-                    <div className="font-semibold text-[#0F172A] text-sm">{p.booking?.hotel?.name || t('admin', 'bookingPayment')}</div>
+                    <div className="font-semibold text-[#182333] text-sm">
+                      {p.booking?.hotel?.name || t("admin", "bookingPayment")}
+                    </div>
                     <div className="text-xs text-[#64748B] mt-0.5">
-                      {formatDate(p.createdAt)} · {methodLabels[p.method] ?? p.method.replace(/_/g, ' ')}
+                      {formatDate(p.createdAt)} ·{" "}
+                      {methodLabels[p.method] ?? p.method.replace(/_/g, " ")}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-sm text-[#0F172A]">{formatMoney(p.amount)}</div>
+                    <div className="font-bold text-sm text-[#182333]">
+                      {formatMoney(p.amount)}
+                    </div>
                     <div className="mt-1 flex justify-end">
                       <StatusBadge status={p.status} size="sm" />
                     </div>
                   </div>
                 </div>
               ))}
-              {!payments.length && <p className="p-10 text-center text-[#64748B]">{t('admin', 'emptyPayments')}</p>}
+              {!payments.length && (
+                <p className="p-10 text-center text-[#64748B]">
+                  {t("admin", "emptyPayments")}
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 6: Reviews */}
-        {tab === 'Reviews' && (
+        {}
+        {tab === "Reviews" && (
           <div>
-            <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'reviewsTitle')}</h1>
-            <p className="text-[#64748B] text-sm mb-6">{t('admin', 'reviewsSubtitle')}</p>
+            <h1 className="font-bold text-[#182333] text-2xl mb-1">
+              {t("admin", "reviewsTitle")}
+            </h1>
+            <p className="text-[#64748B] text-sm mb-6">
+              {t("admin", "reviewsSubtitle")}
+            </p>
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden divide-y divide-slate-100">
               {reviews.map((review) => (
-                <div key={review.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div
+                  key={review.id}
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-[#0F172A] text-sm">{review.user?.fullName || t('admin', 'guestLabel')}</span>
+                      <span className="font-semibold text-[#182333] text-sm">
+                        {review.user?.fullName || t("admin", "guestLabel")}
+                      </span>
                       <div className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((_, idx) => (
                           <Star
                             key={idx}
                             className={`w-3.5 h-3.5 ${
-                              idx < review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
+                              idx < review.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-slate-200"
                             }`}
                           />
                         ))}
@@ -1597,7 +2124,8 @@ function AdminDashboard() {
                     </div>
                     <p className="text-[#334155] text-sm">{review.comment}</p>
                     <p className="text-[#64748B] text-xs mt-1">
-                      {review.hotel?.name || t('admin', 'hotelLabel')} · {formatDate(review.createdAt)}
+                      {review.hotel?.name || t("admin", "hotelLabel")} ·{" "}
+                      {formatDate(review.createdAt)}
                     </p>
                   </div>
                   <button
@@ -1605,88 +2133,123 @@ function AdminDashboard() {
                     onClick={() => void removeReview(review)}
                     className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold disabled:opacity-50"
                   >
-                    {t('admin', 'delete')}
+                    {t("admin", "delete")}
                   </button>
                 </div>
               ))}
-              {!reviews.length && <p className="p-10 text-center text-[#64748B]">{t('admin', 'emptyReviews')}</p>}
+              {!reviews.length && (
+                <p className="p-10 text-center text-[#64748B]">
+                  {t("admin", "emptyReviews")}
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 7: Coupons Management */}
-        {tab === 'Coupons' && (
+        {}
+        {tab === "Coupons" && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'couponsTitle')}</h1>
-                <p className="text-[#64748B] text-sm">{t('admin', 'couponsSubtitle')}</p>
+                <h1 className="font-bold text-[#182333] text-2xl mb-1">
+                  {t("admin", "couponsTitle")}
+                </h1>
+                <p className="text-[#64748B] text-sm">
+                  {t("admin", "couponsSubtitle")}
+                </p>
               </div>
               <button
                 onClick={() => setCouponModalOpen(true)}
                 className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm"
               >
-                + {t('admin', 'createCoupon')}
+                + {t("admin", "createCoupon")}
               </button>
             </div>
 
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
+                <thead className="text-xs text-[#64748B] uppercase bg-[#f3efe5]">
                   <tr>
-                    <th className="px-5 py-3">{t('admin', 'colCode')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colDiscount')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colValidityWindow')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colUsage')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colStatus')}</th>
-                    <th className="px-5 py-3 text-right">{t('admin', 'colAction')}</th>
+                    <th className="px-5 py-3">{t("admin", "colCode")}</th>
+                    <th className="px-5 py-3">{t("admin", "colDiscount")}</th>
+                    <th className="px-5 py-3">
+                      {t("admin", "colValidityWindow")}
+                    </th>
+                    <th className="px-5 py-3">{t("admin", "colUsage")}</th>
+                    <th className="px-5 py-3">{t("admin", "colStatus")}</th>
+                    <th className="px-5 py-3 text-right">
+                      {t("admin", "colAction")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {coupons.map((coupon) => (
                     <tr key={coupon.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-3 font-mono font-bold text-[#0F172A]">{coupon.code}</td>
+                      <td className="px-5 py-3 font-mono font-bold text-[#182333]">
+                        {coupon.code}
+                      </td>
                       <td className="px-5 py-3 text-sm text-[#334155]">
-                        {coupon.discountType === 'PERCENTAGE'
-                          ? t('admin', 'percentOff', { value: coupon.value ?? coupon.discountValue ?? 0 })
-                          : t('admin', 'amountOff', { amount: formatMoney(coupon.value ?? coupon.discountValue) })}
+                        {coupon.discountType === "PERCENTAGE"
+                          ? t("admin", "percentOff", {
+                              value: coupon.value ?? coupon.discountValue ?? 0,
+                            })
+                          : t("admin", "amountOff", {
+                              amount: formatMoney(
+                                coupon.value ?? coupon.discountValue,
+                              ),
+                            })}
                       </td>
                       <td className="px-5 py-3 text-xs text-[#64748B]">
-                        {coupon.validFrom ? formatDate(coupon.validFrom) : t('admin', 'now')} →{' '}
-                        {coupon.validTo ? formatDate(coupon.validTo) : t('admin', 'indefinite')}
+                        {coupon.validFrom
+                          ? formatDate(coupon.validFrom)
+                          : t("admin", "now")}{" "}
+                        →{" "}
+                        {coupon.validTo
+                          ? formatDate(coupon.validTo)
+                          : t("admin", "indefinite")}
                       </td>
                       <td className="px-5 py-3 text-xs text-[#64748B]">
-                        {coupon.timesUsed ?? coupon.usageCount ?? 0} / {coupon.usageLimit ?? '∞'}
+                        {coupon.timesUsed ?? coupon.usageCount ?? 0} /{" "}
+                        {coupon.usageLimit ?? "∞"}
                       </td>
                       <td className="px-5 py-3">
                         <span
                           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                            coupon.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                            coupon.isActive
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-red-50 text-red-600"
                           }`}
-                          >
-                            {coupon.isActive ? t('admin', 'activeLabel') : t('admin', 'disabledLabel')}
-                          </span>
+                        >
+                          {coupon.isActive
+                            ? t("admin", "activeLabel")
+                            : t("admin", "disabledLabel")}
+                        </span>
                       </td>
                       <td className="px-5 py-3 text-right space-x-2">
                         <button
                           onClick={() => toggleCouponActive(coupon)}
                           className="text-xs font-semibold text-[#2563EB]"
                         >
-                          {coupon.isActive ? t('admin', 'disable') : t('admin', 'enable')}
+                          {coupon.isActive
+                            ? t("admin", "disable")
+                            : t("admin", "enable")}
                         </button>
                         <button
                           onClick={() => handleDeleteCoupon(coupon.id)}
                           className="text-xs font-semibold text-red-600"
                         >
-                          {t('admin', 'delete')}
+                          {t("admin", "delete")}
                         </button>
                       </td>
                     </tr>
                   ))}
                   {!coupons.length && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-[#94A3B8] text-sm">
-                        {t('admin', 'emptyCoupons')}
+                      <td
+                        colSpan={6}
+                        className="py-8 text-center text-[#94A3B8] text-sm"
+                      >
+                        {t("admin", "emptyCoupons")}
                       </td>
                     </tr>
                   )}
@@ -1696,14 +2259,16 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 8: Platform Settings & Governance */}
-        {tab === 'Settings' && (
+        {}
+        {tab === "Settings" && (
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'settingsTitle')}</h1>
+                <h1 className="font-bold text-[#182333] text-2xl mb-1">
+                  {t("admin", "settingsTitle")}
+                </h1>
                 <p className="text-[#64748B] text-sm">
-                  {t('admin', 'settingsSubtitle')}
+                  {t("admin", "settingsSubtitle")}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -1713,38 +2278,46 @@ function AdminDashboard() {
                   className="px-3.5 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-white shadow-xs cursor-pointer transition-colors"
                 >
                   <Sliders className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{rawSettingsOpen ? t('admin', 'hideRawStore') : t('admin', 'rawDatabaseExplorer')}</span>
+                  <span>
+                    {rawSettingsOpen
+                      ? t("admin", "hideRawStore")
+                      : t("admin", "rawDatabaseExplorer")}
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setSettingForm({ key: '', value: '', description: '' })
+                    setSettingForm({ key: "", value: "", description: "" })
                     setSettingModalOpen(true)
                   }}
                   className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition-colors flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>{t('admin', 'addCustomKey')}</span>
+                  <span>{t("admin", "addCustomKey")}</span>
                 </button>
               </div>
             </div>
 
-            {/* Maintenance Mode Banner Alert if Enabled */}
+            {}
             {operationSettings.maintenanceMode && (
               <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-xs animate-in fade-in">
                 <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="flex-1 text-xs">
-                  <div className="font-bold text-sm text-amber-950">{t('admin', 'maintenanceModeActive')}</div>
+                  <div className="font-bold text-sm text-amber-950">
+                    {t("admin", "maintenanceModeActive")}
+                  </div>
                   <p className="mt-0.5 text-amber-800">
-                    {t('admin', 'maintenanceBroadcastNotice', { message: operationSettings.maintenanceMessage })}
+                    {t("admin", "maintenanceBroadcastNotice", {
+                      message: operationSettings.maintenanceMessage,
+                    })}
                   </p>
                 </div>
               </div>
             )}
 
-            {/* 5 Functional Settings Category Cards */}
+            {}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Category 1: Financial & Commission Governance */}
+              {}
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 mb-5">
@@ -1752,15 +2325,19 @@ function AdminDashboard() {
                       <CreditCard className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#0F172A] text-base">{t('admin', 'commissionTitle')}</h3>
-                      <p className="text-xs text-slate-500">{t('admin', 'commissionSubtitle')}</p>
+                      <h3 className="font-bold text-[#182333] text-base">
+                        {t("admin", "commissionTitle")}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {t("admin", "commissionSubtitle")}
+                      </p>
                     </div>
                   </div>
 
                   <div className="space-y-4 text-xs">
                     <div>
                       <label className="block font-semibold text-slate-700 mb-1">
-                        {t('admin', 'platformCommissionFee')}
+                        {t("admin", "platformCommissionFee")}
                       </label>
                       <input
                         type="number"
@@ -1769,16 +2346,23 @@ function AdminDashboard() {
                         max="100"
                         value={commissionSettings.platformFeePercent}
                         onChange={(e) =>
-                          setCommissionSettings((p) => ({ ...p, platformFeePercent: Number(e.target.value) }))
+                          setCommissionSettings((p) => ({
+                            ...p,
+                            platformFeePercent: Number(e.target.value),
+                          }))
                         }
                         className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                       />
-                      <p className="text-[11px] text-slate-400 mt-1">{t('admin', 'commissionFeeHelp')}</p>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {t("admin", "commissionFeeHelp")}
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">{t('admin', 'vatRate')}</label>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          {t("admin", "vatRate")}
+                        </label>
                         <input
                           type="number"
                           step="0.5"
@@ -1786,50 +2370,78 @@ function AdminDashboard() {
                           max="50"
                           value={commissionSettings.vatRate}
                           onChange={(e) =>
-                            setCommissionSettings((p) => ({ ...p, vatRate: Number(e.target.value) }))
+                            setCommissionSettings((p) => ({
+                              ...p,
+                              vatRate: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
                       </div>
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">{t('admin', 'defaultCurrency')}</label>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          {t("admin", "defaultCurrency")}
+                        </label>
                         <select
                           value={commissionSettings.defaultCurrency}
                           onChange={(e) =>
-                            setCommissionSettings((p) => ({ ...p, defaultCurrency: e.target.value }))
+                            setCommissionSettings((p) => ({
+                              ...p,
+                              defaultCurrency: e.target.value,
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
-                          <option value="ETB">{t('admin', 'currencyETB')}</option>
-                          <option value="USD">{t('admin', 'currencyUSD')}</option>
+                          <option value="ETB">
+                            {t("admin", "currencyETB")}
+                          </option>
+                          <option value="USD">
+                            {t("admin", "currencyUSD")}
+                          </option>
                         </select>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">{t('admin', 'payoutSchedule')}</label>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          {t("admin", "payoutSchedule")}
+                        </label>
                         <select
                           value={commissionSettings.payoutSchedule}
                           onChange={(e) =>
-                            setCommissionSettings((p) => ({ ...p, payoutSchedule: e.target.value }))
+                            setCommissionSettings((p) => ({
+                              ...p,
+                              payoutSchedule: e.target.value,
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
-                          <option value="WEEKLY">{t('admin', 'payoutWeekly')}</option>
-                          <option value="BI_WEEKLY">{t('admin', 'payoutBiWeekly')}</option>
-                          <option value="MONTHLY">{t('admin', 'payoutMonthly')}</option>
+                          <option value="WEEKLY">
+                            {t("admin", "payoutWeekly")}
+                          </option>
+                          <option value="BI_WEEKLY">
+                            {t("admin", "payoutBiWeekly")}
+                          </option>
+                          <option value="MONTHLY">
+                            {t("admin", "payoutMonthly")}
+                          </option>
                         </select>
                       </div>
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">{t('admin', 'minPayout')}</label>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          {t("admin", "minPayout")}
+                        </label>
                         <input
                           type="number"
                           step="500"
                           min="500"
                           value={commissionSettings.minPayoutAmount}
                           onChange={(e) =>
-                            setCommissionSettings((p) => ({ ...p, minPayoutAmount: Number(e.target.value) }))
+                            setCommissionSettings((p) => ({
+                              ...p,
+                              minPayoutAmount: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
@@ -1841,34 +2453,46 @@ function AdminDashboard() {
                 <div className="flex justify-between items-center pt-5 mt-5 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => handleResetCategory('COMMISSION_AND_TAX', defaultCommission, t('admin', 'labelCommissionSettings'))}
+                    onClick={() =>
+                      handleResetCategory(
+                        "COMMISSION_AND_TAX",
+                        defaultCommission,
+                        t("admin", "labelCommissionSettings"),
+                      )
+                    }
                     className="text-slate-400 hover:text-slate-600 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{t('admin', 'defaults')}</span>
+                    <span>{t("admin", "defaults")}</span>
                   </button>
                   <button
                     type="button"
                     disabled={savingCategory !== null}
-                    onClick={() => handleSaveCategory('COMMISSION_AND_TAX', commissionSettings, t('admin', 'labelCommissionSettings'))}
-                    className="px-4 py-2 bg-[#0F2942] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+                    onClick={() =>
+                      handleSaveCategory(
+                        "COMMISSION_AND_TAX",
+                        commissionSettings,
+                        t("admin", "labelCommissionSettings"),
+                      )
+                    }
+                    className="px-4 py-2 bg-[#0b1528] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
                   >
-                    {savingCategory === 'COMMISSION_AND_TAX' ? (
+                    {savingCategory === "COMMISSION_AND_TAX" ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                        <span>{t('admin', 'saving')}</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#e4bd55]" />
+                        <span>{t("admin", "saving")}</span>
                       </>
                     ) : (
                       <>
-                        <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>{t('admin', 'saveFinancials')}</span>
+                        <Check className="w-3.5 h-3.5 text-[#e4bd55]" />
+                        <span>{t("admin", "saveFinancials")}</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Category 2: Booking Policies & Reservation Defaults */}
+              {}
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 mb-5">
@@ -1876,8 +2500,12 @@ function AdminDashboard() {
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#0F172A] text-base">{t('admin', 'bookingPoliciesTitle')}</h3>
-                      <p className="text-xs text-slate-500">{t('admin', 'bookingPoliciesSubtitle')}</p>
+                      <h3 className="font-bold text-[#182333] text-base">
+                        {t("admin", "bookingPoliciesTitle")}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {t("admin", "bookingPoliciesSubtitle")}
+                      </p>
                     </div>
                   </div>
 
@@ -1885,7 +2513,7 @@ function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          {t('admin', 'holdTimeout')}
+                          {t("admin", "holdTimeout")}
                         </label>
                         <input
                           type="number"
@@ -1893,16 +2521,21 @@ function AdminDashboard() {
                           max="180"
                           value={bookingSettings.holdDurationMinutes}
                           onChange={(e) =>
-                            setBookingSettings((p) => ({ ...p, holdDurationMinutes: Number(e.target.value) }))
+                            setBookingSettings((p) => ({
+                              ...p,
+                              holdDurationMinutes: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
-                        <p className="text-[11px] text-slate-400 mt-1">{t('admin', 'holdTimeoutHelp')}</p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {t("admin", "holdTimeoutHelp")}
+                        </p>
                       </div>
 
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          {t('admin', 'freeCancellation')}
+                          {t("admin", "freeCancellation")}
                         </label>
                         <input
                           type="number"
@@ -1910,17 +2543,22 @@ function AdminDashboard() {
                           max="168"
                           value={bookingSettings.cancellationGraceHours}
                           onChange={(e) =>
-                            setBookingSettings((p) => ({ ...p, cancellationGraceHours: Number(e.target.value) }))
+                            setBookingSettings((p) => ({
+                              ...p,
+                              cancellationGraceHours: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
-                        <p className="text-[11px] text-slate-400 mt-1">{t('admin', 'freeCancellationHelp')}</p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {t("admin", "freeCancellationHelp")}
+                        </p>
                       </div>
                     </div>
 
                     <div>
                       <label className="block font-semibold text-slate-700 mb-1">
-                        {t('admin', 'maxRoomsPerBooking')}
+                        {t("admin", "maxRoomsPerBooking")}
                       </label>
                       <input
                         type="number"
@@ -1928,7 +2566,10 @@ function AdminDashboard() {
                         max="50"
                         value={bookingSettings.maxRoomsPerBooking}
                         onChange={(e) =>
-                          setBookingSettings((p) => ({ ...p, maxRoomsPerBooking: Number(e.target.value) }))
+                          setBookingSettings((p) => ({
+                            ...p,
+                            maxRoomsPerBooking: Number(e.target.value),
+                          }))
                         }
                         className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                       />
@@ -1937,14 +2578,21 @@ function AdminDashboard() {
                     <div className="pt-2 space-y-3">
                       <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'autoConfirmBookings')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'autoConfirmHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "autoConfirmBookings")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "autoConfirmHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={bookingSettings.autoConfirmBookings}
                           onChange={(e) =>
-                            setBookingSettings((p) => ({ ...p, autoConfirmBookings: e.target.checked }))
+                            setBookingSettings((p) => ({
+                              ...p,
+                              autoConfirmBookings: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -1952,14 +2600,21 @@ function AdminDashboard() {
 
                       <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'allowEarlyCheckIn')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'allowEarlyCheckInHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "allowEarlyCheckIn")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "allowEarlyCheckInHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={bookingSettings.allowEarlyCheckIn}
                           onChange={(e) =>
-                            setBookingSettings((p) => ({ ...p, allowEarlyCheckIn: e.target.checked }))
+                            setBookingSettings((p) => ({
+                              ...p,
+                              allowEarlyCheckIn: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -1971,34 +2626,46 @@ function AdminDashboard() {
                 <div className="flex justify-between items-center pt-5 mt-5 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => handleResetCategory('BOOKING_POLICIES', defaultBooking, t('admin', 'labelBookingPolicies'))}
+                    onClick={() =>
+                      handleResetCategory(
+                        "BOOKING_POLICIES",
+                        defaultBooking,
+                        t("admin", "labelBookingPolicies"),
+                      )
+                    }
                     className="text-slate-400 hover:text-slate-600 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{t('admin', 'defaults')}</span>
+                    <span>{t("admin", "defaults")}</span>
                   </button>
                   <button
                     type="button"
                     disabled={savingCategory !== null}
-                    onClick={() => handleSaveCategory('BOOKING_POLICIES', bookingSettings, t('admin', 'labelBookingPolicies'))}
-                    className="px-4 py-2 bg-[#0F2942] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+                    onClick={() =>
+                      handleSaveCategory(
+                        "BOOKING_POLICIES",
+                        bookingSettings,
+                        t("admin", "labelBookingPolicies"),
+                      )
+                    }
+                    className="px-4 py-2 bg-[#0b1528] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
                   >
-                    {savingCategory === 'BOOKING_POLICIES' ? (
+                    {savingCategory === "BOOKING_POLICIES" ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                        <span>{t('admin', 'saving')}</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#e4bd55]" />
+                        <span>{t("admin", "saving")}</span>
                       </>
                     ) : (
                       <>
-                        <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>{t('admin', 'saveBookingPolicies')}</span>
+                        <Check className="w-3.5 h-3.5 text-[#e4bd55]" />
+                        <span>{t("admin", "saveBookingPolicies")}</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Category 3: Security & Access Controls */}
+              {}
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 mb-5">
@@ -2006,8 +2673,12 @@ function AdminDashboard() {
                       <Shield className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#0F172A] text-base">{t('admin', 'securityTitle')}</h3>
-                      <p className="text-xs text-slate-500">{t('admin', 'securitySubtitle')}</p>
+                      <h3 className="font-bold text-[#182333] text-base">
+                        {t("admin", "securityTitle")}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {t("admin", "securitySubtitle")}
+                      </p>
                     </div>
                   </div>
 
@@ -2015,25 +2686,36 @@ function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          {t('admin', 'minPasswordLength')}
+                          {t("admin", "minPasswordLength")}
                         </label>
                         <select
                           value={securitySettings.passwordMinLength}
                           onChange={(e) =>
-                            setSecuritySettings((p) => ({ ...p, passwordMinLength: Number(e.target.value) }))
+                            setSecuritySettings((p) => ({
+                              ...p,
+                              passwordMinLength: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
-                          <option value={6}>{t('admin', 'passwordChars6')}</option>
-                          <option value={8}>{t('admin', 'passwordChars8')}</option>
-                          <option value={10}>{t('admin', 'passwordChars10')}</option>
-                          <option value={12}>{t('admin', 'passwordChars12')}</option>
+                          <option value={6}>
+                            {t("admin", "passwordChars6")}
+                          </option>
+                          <option value={8}>
+                            {t("admin", "passwordChars8")}
+                          </option>
+                          <option value={10}>
+                            {t("admin", "passwordChars10")}
+                          </option>
+                          <option value={12}>
+                            {t("admin", "passwordChars12")}
+                          </option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          {t('admin', 'sessionTimeout')}
+                          {t("admin", "sessionTimeout")}
                         </label>
                         <input
                           type="number"
@@ -2041,7 +2723,10 @@ function AdminDashboard() {
                           max="720"
                           value={securitySettings.sessionTimeoutHours}
                           onChange={(e) =>
-                            setSecuritySettings((p) => ({ ...p, sessionTimeoutHours: Number(e.target.value) }))
+                            setSecuritySettings((p) => ({
+                              ...p,
+                              sessionTimeoutHours: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
@@ -2050,7 +2735,7 @@ function AdminDashboard() {
 
                     <div>
                       <label className="block font-semibold text-slate-700 mb-1">
-                        {t('admin', 'maxLoginAttempts')}
+                        {t("admin", "maxLoginAttempts")}
                       </label>
                       <input
                         type="number"
@@ -2058,24 +2743,36 @@ function AdminDashboard() {
                         max="20"
                         value={securitySettings.maxLoginAttempts}
                         onChange={(e) =>
-                          setSecuritySettings((p) => ({ ...p, maxLoginAttempts: Number(e.target.value) }))
+                          setSecuritySettings((p) => ({
+                            ...p,
+                            maxLoginAttempts: Number(e.target.value),
+                          }))
                         }
                         className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                       />
-                      <p className="text-[11px] text-slate-400 mt-1">{t('admin', 'maxLoginAttemptsHelp')}</p>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {t("admin", "maxLoginAttemptsHelp")}
+                      </p>
                     </div>
 
                     <div className="pt-2 space-y-3">
                       <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'enforce2FA')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'enforce2FAHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "enforce2FA")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "enforce2FAHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={securitySettings.require2FAForStaff}
                           onChange={(e) =>
-                            setSecuritySettings((p) => ({ ...p, require2FAForStaff: e.target.checked }))
+                            setSecuritySettings((p) => ({
+                              ...p,
+                              require2FAForStaff: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -2083,14 +2780,21 @@ function AdminDashboard() {
 
                       <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'immutableAuditLogging')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'auditLoggingHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "immutableAuditLogging")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "auditLoggingHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={securitySettings.enableAuditLogging}
                           onChange={(e) =>
-                            setSecuritySettings((p) => ({ ...p, enableAuditLogging: e.target.checked }))
+                            setSecuritySettings((p) => ({
+                              ...p,
+                              enableAuditLogging: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -2102,34 +2806,46 @@ function AdminDashboard() {
                 <div className="flex justify-between items-center pt-5 mt-5 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => handleResetCategory('SECURITY_AND_AUTH', defaultSecurity, t('admin', 'labelSecuritySettings'))}
+                    onClick={() =>
+                      handleResetCategory(
+                        "SECURITY_AND_AUTH",
+                        defaultSecurity,
+                        t("admin", "labelSecuritySettings"),
+                      )
+                    }
                     className="text-slate-400 hover:text-slate-600 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{t('admin', 'defaults')}</span>
+                    <span>{t("admin", "defaults")}</span>
                   </button>
                   <button
                     type="button"
                     disabled={savingCategory !== null}
-                    onClick={() => handleSaveCategory('SECURITY_AND_AUTH', securitySettings, t('admin', 'labelSecuritySettings'))}
-                    className="px-4 py-2 bg-[#0F2942] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+                    onClick={() =>
+                      handleSaveCategory(
+                        "SECURITY_AND_AUTH",
+                        securitySettings,
+                        t("admin", "labelSecuritySettings"),
+                      )
+                    }
+                    className="px-4 py-2 bg-[#0b1528] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
                   >
-                    {savingCategory === 'SECURITY_AND_AUTH' ? (
+                    {savingCategory === "SECURITY_AND_AUTH" ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                        <span>{t('admin', 'saving')}</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#e4bd55]" />
+                        <span>{t("admin", "saving")}</span>
                       </>
                     ) : (
                       <>
-                        <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>{t('admin', 'saveSecurityControls')}</span>
+                        <Check className="w-3.5 h-3.5 text-[#e4bd55]" />
+                        <span>{t("admin", "saveSecurityControls")}</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Category 4: Notifications & Communication Gateways */}
+              {}
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 mb-5">
@@ -2137,21 +2853,28 @@ function AdminDashboard() {
                       <Bell className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#0F172A] text-base">{t('admin', 'notificationGatewaysTitle')}</h3>
-                      <p className="text-xs text-slate-500">{t('admin', 'notificationGatewaysSubtitle')}</p>
+                      <h3 className="font-bold text-[#182333] text-base">
+                        {t("admin", "notificationGatewaysTitle")}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {t("admin", "notificationGatewaysSubtitle")}
+                      </p>
                     </div>
                   </div>
 
                   <div className="space-y-4 text-xs">
                     <div>
                       <label className="block font-semibold text-slate-700 mb-1">
-                        {t('admin', 'supportEmailLabel')}
+                        {t("admin", "supportEmailLabel")}
                       </label>
                       <input
                         type="email"
                         value={notificationSettings.supportEmail}
                         onChange={(e) =>
-                          setNotificationSettings((p) => ({ ...p, supportEmail: e.target.value }))
+                          setNotificationSettings((p) => ({
+                            ...p,
+                            supportEmail: e.target.value,
+                          }))
                         }
                         className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                       />
@@ -2159,32 +2882,50 @@ function AdminDashboard() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">{t('admin', 'smsGatewayProvider')}</label>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          {t("admin", "smsGatewayProvider")}
+                        </label>
                         <select
                           value={notificationSettings.smsProvider}
                           onChange={(e) =>
-                            setNotificationSettings((p) => ({ ...p, smsProvider: e.target.value }))
+                            setNotificationSettings((p) => ({
+                              ...p,
+                              smsProvider: e.target.value,
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
-                          <option value="MOCK">{t('admin', 'smsMock')}</option>
-                          <option value="TWILIO">{t('admin', 'smsTwilio')}</option>
-                          <option value="ETHIOTELECOM">{t('admin', 'smsEthioTelecom')}</option>
+                          <option value="MOCK">{t("admin", "smsMock")}</option>
+                          <option value="TWILIO">
+                            {t("admin", "smsTwilio")}
+                          </option>
+                          <option value="ETHIOTELECOM">
+                            {t("admin", "smsEthioTelecom")}
+                          </option>
                         </select>
                       </div>
 
                       <div>
-                        <label className="block font-semibold text-slate-700 mb-1">{t('admin', 'emailDispatcher')}</label>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          {t("admin", "emailDispatcher")}
+                        </label>
                         <select
                           value={notificationSettings.emailDispatchMode}
                           onChange={(e) =>
-                            setNotificationSettings((p) => ({ ...p, emailDispatchMode: e.target.value }))
+                            setNotificationSettings((p) => ({
+                              ...p,
+                              emailDispatchMode: e.target.value,
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
-                          <option value="SMTP">{t('admin', 'emailSmtp')}</option>
-                          <option value="SES">{t('admin', 'emailSes')}</option>
-                          <option value="SIMULATED">{t('admin', 'emailSimulated')}</option>
+                          <option value="SMTP">
+                            {t("admin", "emailSmtp")}
+                          </option>
+                          <option value="SES">{t("admin", "emailSes")}</option>
+                          <option value="SIMULATED">
+                            {t("admin", "emailSimulated")}
+                          </option>
                         </select>
                       </div>
                     </div>
@@ -2192,14 +2933,21 @@ function AdminDashboard() {
                     <div className="pt-2 space-y-3">
                       <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'bookingConfirmationEmails')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'bookingConfirmationHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "bookingConfirmationEmails")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "bookingConfirmationHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={notificationSettings.notifyOnBooking}
                           onChange={(e) =>
-                            setNotificationSettings((p) => ({ ...p, notifyOnBooking: e.target.checked }))
+                            setNotificationSettings((p) => ({
+                              ...p,
+                              notifyOnBooking: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -2207,14 +2955,21 @@ function AdminDashboard() {
 
                       <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'cancellationAlertEmails')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'cancellationAlertHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "cancellationAlertEmails")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "cancellationAlertHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={notificationSettings.notifyOnCancellation}
                           onChange={(e) =>
-                            setNotificationSettings((p) => ({ ...p, notifyOnCancellation: e.target.checked }))
+                            setNotificationSettings((p) => ({
+                              ...p,
+                              notifyOnCancellation: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -2226,34 +2981,46 @@ function AdminDashboard() {
                 <div className="flex justify-between items-center pt-5 mt-5 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => handleResetCategory('NOTIFICATIONS_GATEWAY', defaultNotifications, t('admin', 'labelNotificationSettings'))}
+                    onClick={() =>
+                      handleResetCategory(
+                        "NOTIFICATIONS_GATEWAY",
+                        defaultNotifications,
+                        t("admin", "labelNotificationSettings"),
+                      )
+                    }
                     className="text-slate-400 hover:text-slate-600 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{t('admin', 'defaults')}</span>
+                    <span>{t("admin", "defaults")}</span>
                   </button>
                   <button
                     type="button"
                     disabled={savingCategory !== null}
-                    onClick={() => handleSaveCategory('NOTIFICATIONS_GATEWAY', notificationSettings, t('admin', 'labelNotificationSettings'))}
-                    className="px-4 py-2 bg-[#0F2942] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+                    onClick={() =>
+                      handleSaveCategory(
+                        "NOTIFICATIONS_GATEWAY",
+                        notificationSettings,
+                        t("admin", "labelNotificationSettings"),
+                      )
+                    }
+                    className="px-4 py-2 bg-[#0b1528] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
                   >
-                    {savingCategory === 'NOTIFICATIONS_GATEWAY' ? (
+                    {savingCategory === "NOTIFICATIONS_GATEWAY" ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                        <span>{t('admin', 'saving')}</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#e4bd55]" />
+                        <span>{t("admin", "saving")}</span>
                       </>
                     ) : (
                       <>
-                        <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>{t('admin', 'saveGateways')}</span>
+                        <Check className="w-3.5 h-3.5 text-[#e4bd55]" />
+                        <span>{t("admin", "saveGateways")}</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Category 5: Operations & Platform Maintenance (Spans Full Width on Small, 2 Cols on Large) */}
+              {}
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col justify-between lg:col-span-2">
                 <div>
                   <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 mb-5">
@@ -2261,8 +3028,12 @@ function AdminDashboard() {
                       <Wrench className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#0F172A] text-base">{t('admin', 'operationsTitle')}</h3>
-                      <p className="text-xs text-slate-500">{t('admin', 'operationsSubtitle')}</p>
+                      <h3 className="font-bold text-[#182333] text-base">
+                        {t("admin", "operationsTitle")}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {t("admin", "operationsSubtitle")}
+                      </p>
                     </div>
                   </div>
 
@@ -2271,16 +3042,21 @@ function AdminDashboard() {
                       <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-3">
                         <label className="flex items-center justify-between cursor-pointer">
                           <div>
-                            <div className="font-bold text-sm text-slate-900">{t('admin', 'platformMaintenanceMode')}</div>
+                            <div className="font-bold text-sm text-slate-900">
+                              {t("admin", "platformMaintenanceMode")}
+                            </div>
                             <div className="text-[11px] text-slate-500 mt-0.5">
-                              {t('admin', 'platformMaintenanceModeHelp')}
+                              {t("admin", "platformMaintenanceModeHelp")}
                             </div>
                           </div>
                           <input
                             type="checkbox"
                             checked={operationSettings.maintenanceMode}
                             onChange={(e) =>
-                              setOperationSettings((p) => ({ ...p, maintenanceMode: e.target.checked }))
+                              setOperationSettings((p) => ({
+                                ...p,
+                                maintenanceMode: e.target.checked,
+                              }))
                             }
                             className="w-5 h-5 text-rose-600 rounded cursor-pointer"
                           />
@@ -2289,14 +3065,21 @@ function AdminDashboard() {
 
                       <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
                         <div>
-                          <div className="font-semibold text-slate-800">{t('admin', 'autoApproveHotels')}</div>
-                          <div className="text-[11px] text-slate-400">{t('admin', 'autoApproveHotelsHelp')}</div>
+                          <div className="font-semibold text-slate-800">
+                            {t("admin", "autoApproveHotels")}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t("admin", "autoApproveHotelsHelp")}
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={operationSettings.autoApproveHotels}
                           onChange={(e) =>
-                            setOperationSettings((p) => ({ ...p, autoApproveHotels: e.target.checked }))
+                            setOperationSettings((p) => ({
+                              ...p,
+                              autoApproveHotels: e.target.checked,
+                            }))
                           }
                           className="w-4 h-4 text-[#2563EB] rounded cursor-pointer"
                         />
@@ -2306,13 +3089,16 @@ function AdminDashboard() {
                     <div className="space-y-4">
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          {t('admin', 'maintenanceNoticeBroadcast')}
+                          {t("admin", "maintenanceNoticeBroadcast")}
                         </label>
                         <textarea
                           rows={2}
                           value={operationSettings.maintenanceMessage}
                           onChange={(e) =>
-                            setOperationSettings((p) => ({ ...p, maintenanceMessage: e.target.value }))
+                            setOperationSettings((p) => ({
+                              ...p,
+                              maintenanceMessage: e.target.value,
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
@@ -2320,7 +3106,7 @@ function AdminDashboard() {
 
                       <div>
                         <label className="block font-semibold text-slate-700 mb-1">
-                          {t('admin', 'maxUploadSize')}
+                          {t("admin", "maxUploadSize")}
                         </label>
                         <input
                           type="number"
@@ -2328,7 +3114,10 @@ function AdminDashboard() {
                           max="50"
                           value={operationSettings.maxUploadSizeMb}
                           onChange={(e) =>
-                            setOperationSettings((p) => ({ ...p, maxUploadSizeMb: Number(e.target.value) }))
+                            setOperationSettings((p) => ({
+                              ...p,
+                              maxUploadSizeMb: Number(e.target.value),
+                            }))
                           }
                           className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         />
@@ -2340,27 +3129,39 @@ function AdminDashboard() {
                 <div className="flex justify-between items-center pt-5 mt-5 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => handleResetCategory('PLATFORM_OPERATIONS', defaultOperations, t('admin', 'labelOperationSettings'))}
+                    onClick={() =>
+                      handleResetCategory(
+                        "PLATFORM_OPERATIONS",
+                        defaultOperations,
+                        t("admin", "labelOperationSettings"),
+                      )
+                    }
                     className="text-slate-400 hover:text-slate-600 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{t('admin', 'defaults')}</span>
+                    <span>{t("admin", "defaults")}</span>
                   </button>
                   <button
                     type="button"
                     disabled={savingCategory !== null}
-                    onClick={() => handleSaveCategory('PLATFORM_OPERATIONS', operationSettings, t('admin', 'labelOperationSettings'))}
-                    className="px-5 py-2.5 bg-[#0F2942] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+                    onClick={() =>
+                      handleSaveCategory(
+                        "PLATFORM_OPERATIONS",
+                        operationSettings,
+                        t("admin", "labelOperationSettings"),
+                      )
+                    }
+                    className="px-5 py-2.5 bg-[#0b1528] hover:bg-[#1E3E62] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
                   >
-                    {savingCategory === 'PLATFORM_OPERATIONS' ? (
+                    {savingCategory === "PLATFORM_OPERATIONS" ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                        <span>{t('admin', 'savingOperationalControls')}</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#e4bd55]" />
+                        <span>{t("admin", "savingOperationalControls")}</span>
                       </>
                     ) : (
                       <>
-                        <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>{t('admin', 'saveOperationalControls')}</span>
+                        <Check className="w-3.5 h-3.5 text-[#e4bd55]" />
+                        <span>{t("admin", "saveOperationalControls")}</span>
                       </>
                     )}
                   </button>
@@ -2368,27 +3169,40 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Collapsible Section: Raw Key-Value Database Explorer */}
+            {}
             {rawSettingsOpen && (
               <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden p-6 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-bold text-base text-[#0F172A]">{t('admin', 'rawDatabaseExplorerTitle')}</h3>
-                    <p className="text-xs text-slate-500">{t('admin', 'rawDatabaseExplorerSubtitle')}</p>
+                    <h3 className="font-bold text-base text-[#182333]">
+                      {t("admin", "rawDatabaseExplorerTitle")}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {t("admin", "rawDatabaseExplorerSubtitle")}
+                    </p>
                   </div>
                   <span className="text-xs font-mono bg-slate-100 px-2.5 py-1 rounded-lg text-slate-600">
-                    {t('admin', 'totalKeys', { count: settings.length })}
+                    {t("admin", "totalKeys", { count: settings.length })}
                   </span>
                 </div>
 
                 <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden">
                   {settings.map((s) => (
-                    <div key={s.id || s.key} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50">
+                    <div
+                      key={s.id || s.key}
+                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50"
+                    >
                       <div className="min-w-0">
-                        <div className="font-mono font-bold text-xs text-[#0F172A]">{s.key}</div>
-                        <div className="text-[11px] text-[#64748B] mt-0.5">{s.description || t('admin', 'systemProperty')}</div>
+                        <div className="font-mono font-bold text-xs text-[#182333]">
+                          {s.key}
+                        </div>
+                        <div className="text-[11px] text-[#64748B] mt-0.5">
+                          {s.description || t("admin", "systemProperty")}
+                        </div>
                         <div className="mt-1.5 text-[11px] font-mono bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg inline-block text-slate-700 max-w-md truncate">
-                          {typeof s.value === 'object' ? JSON.stringify(s.value) : String(s.value)}
+                          {typeof s.value === "object"
+                            ? JSON.stringify(s.value)
+                            : String(s.value)}
                         </div>
                       </div>
 
@@ -2398,27 +3212,32 @@ function AdminDashboard() {
                           onClick={() => {
                             setSettingForm({
                               key: s.key,
-                              value: typeof s.value === 'object' ? JSON.stringify(s.value, null, 2) : String(s.value),
-                              description: s.description || '',
+                              value:
+                                typeof s.value === "object"
+                                  ? JSON.stringify(s.value, null, 2)
+                                  : String(s.value),
+                              description: s.description || "",
                             })
                             setSettingModalOpen(true)
                           }}
                           className="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                         >
-                          {t('admin', 'editRaw')}
+                          {t("admin", "editRaw")}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteSetting(s.key)}
                           className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                         >
-                          {t('admin', 'delete')}
+                          {t("admin", "delete")}
                         </button>
                       </div>
                     </div>
                   ))}
                   {!settings.length && (
-                    <div className="p-8 text-center text-xs text-slate-400">{t('admin', 'emptyRawSettings')}</div>
+                    <div className="p-8 text-center text-xs text-slate-400">
+                      {t("admin", "emptyRawSettings")}
+                    </div>
                   )}
                 </div>
               </div>
@@ -2426,85 +3245,116 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 9: Audit Logs */}
-        {tab === 'Audit Logs' && (
+        {}
+        {tab === "Audit Logs" && (
           <div>
-            <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'auditTrailTitle')}</h1>
-            <p className="text-[#64748B] text-sm mb-6">{t('admin', 'auditTrailSubtitle')}</p>
+            <h1 className="font-bold text-[#182333] text-2xl mb-1">
+              {t("admin", "auditTrailTitle")}
+            </h1>
+            <p className="text-[#64748B] text-sm mb-6">
+              {t("admin", "auditTrailSubtitle")}
+            </p>
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
+                <thead className="text-xs text-[#64748B] uppercase bg-[#f3efe5]">
                   <tr>
-                    <th className="px-5 py-3">{t('admin', 'colTimestamp')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colActor')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colAction')}</th>
-                    <th className="px-5 py-3">{t('admin', 'colResourceTarget')}</th>
+                    <th className="px-5 py-3">{t("admin", "colTimestamp")}</th>
+                    <th className="px-5 py-3">{t("admin", "colActor")}</th>
+                    <th className="px-5 py-3">{t("admin", "colAction")}</th>
+                    <th className="px-5 py-3">
+                      {t("admin", "colResourceTarget")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {auditLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50">
                       <td className="px-5 py-3 text-xs text-[#64748B] whitespace-nowrap">
-                        {log.createdAt ? formatDateTime(log.createdAt) : '—'}
+                        {log.createdAt ? formatDateTime(log.createdAt) : "—"}
                       </td>
                       <td className="px-5 py-3 text-xs text-[#334155]">
-                        {typeof log.actor === 'string'
+                        {typeof log.actor === "string"
                           ? log.actor
-                          : (log.actor as { email?: string })?.email || t('admin', 'administratorFallback')}
+                          : (log.actor as { email?: string })?.email ||
+                            t("admin", "administratorFallback")}
                       </td>
                       <td className="px-5 py-3">
                         <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-[#334155]">
-                          {log.action || (log.resourceType || t('admin', 'eventFallback')).replace(/_/g, ' ')}
+                          {log.action ||
+                            (
+                              log.resourceType || t("admin", "eventFallback")
+                            ).replace(/_/g, " ")}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-xs text-[#64748B] font-mono">{log.resource || log.resourceType || '—'}</td>
+                      <td className="px-5 py-3 text-xs text-[#64748B] font-mono">
+                        {log.resource || log.resourceType || "—"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {!auditLogs.length && <p className="p-10 text-center text-[#64748B]">{t('admin', 'emptyAuditLogs')}</p>}
+              {!auditLogs.length && (
+                <p className="p-10 text-center text-[#64748B]">
+                  {t("admin", "emptyAuditLogs")}
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 10: Platform Reports & Analytics */}
-        {tab === 'Reports' && (
+        {}
+        {tab === "Reports" && (
           <div>
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('admin', 'reportsTitle')}</h1>
+                <h1 className="font-bold text-[#182333] text-2xl mb-1">
+                  {t("admin", "reportsTitle")}
+                </h1>
                 <p className="text-[#64748B] text-sm">
-                  {t('admin', 'reportsSubtitle')}
+                  {t("admin", "reportsSubtitle")}
                 </p>
               </div>
 
-              {/* Action Buttons: Download PDF & Excel */}
+              {}
               <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   type="button"
                   disabled={reportDownloading !== null}
                   onClick={async () => {
-                    setReportDownloading('pdf')
+                    setReportDownloading("pdf")
                     try {
-                      await adminApi.downloadReport(reportType, 'pdf', reportPeriod)
-                      setSuccessBanner(t('admin', 'pdfDownloaded', { type: reportType.toUpperCase(), period: reportPeriod }))
+                      await adminApi.downloadReport(
+                        reportType,
+                        "pdf",
+                        reportPeriod,
+                      )
+                      setSuccessBanner(
+                        t("admin", "pdfDownloaded", {
+                          type: reportType.toUpperCase(),
+                          period: reportPeriod,
+                        }),
+                      )
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : t('admin', 'failedPdfDownload'))
+                      setError(
+                        err instanceof Error
+                          ? err.message
+                          : t("admin", "failedPdfDownload"),
+                      )
                     } finally {
                       setReportDownloading(null)
                     }
                   }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0F2942] hover:bg-[#1E3E62] text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0b1528] hover:bg-[#1E3E62] text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {reportDownloading === 'pdf' ? (
+                  {reportDownloading === "pdf" ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                      <span>{t('admin', 'generatingPdf')}</span>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#e4bd55]" />
+                      <span>{t("admin", "generatingPdf")}</span>
                     </>
                   ) : (
                     <>
-                      <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
-                      <span>{t('admin', 'downloadPdf')}</span>
+                      <FileDown className="w-3.5 h-3.5 text-[#e4bd55]" />
+                      <span>{t("admin", "downloadPdf")}</span>
                     </>
                   )}
                 </button>
@@ -2513,58 +3363,69 @@ function AdminDashboard() {
                   type="button"
                   disabled={reportDownloading !== null}
                   onClick={async () => {
-                    setReportDownloading('excel')
+                    setReportDownloading("excel")
                     try {
-                      await adminApi.downloadReport(reportType, 'excel', reportPeriod)
-                      setSuccessBanner(t('admin', 'excelDownloaded', { type: reportType.toUpperCase(), period: reportPeriod }))
+                      await adminApi.downloadReport(
+                        reportType,
+                        "excel",
+                        reportPeriod,
+                      )
+                      setSuccessBanner(
+                        t("admin", "excelDownloaded", {
+                          type: reportType.toUpperCase(),
+                          period: reportPeriod,
+                        }),
+                      )
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : t('admin', 'failedExcelDownload'))
+                      setError(
+                        err instanceof Error
+                          ? err.message
+                          : t("admin", "failedExcelDownload"),
+                      )
                     } finally {
                       setReportDownloading(null)
                     }
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {reportDownloading === 'excel' ? (
+                  {reportDownloading === "excel" ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>{t('admin', 'generatingExcel')}</span>
+                      <span>{t("admin", "generatingExcel")}</span>
                     </>
                   ) : (
                     <>
                       <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
-                      <span>{t('admin', 'downloadExcel')}</span>
+                      <span>{t("admin", "downloadExcel")}</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Timeframe & Category Control Bar */}
+            {}
             <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm mb-6 space-y-4">
-              {/* Row 1: Timeframe Toggle */}
+              {}
               <div>
                 <div className="text-xs font-semibold text-[#64748B] mb-2 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span>{t('admin', 'reportTimeframe')}</span>
+                  <span>{t("admin", "reportTimeframe")}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      { id: 'daily', label: t('admin', 'periodDaily') },
-                      { id: 'weekly', label: t('admin', 'periodWeekly') },
-                      { id: 'monthly', label: t('admin', 'periodMonthly') },
-                      { id: 'yearly', label: t('admin', 'periodYearly') },
-                    ] as const
-                  ).map((p) => (
+                  {([
+                    { id: "daily", label: t("admin", "periodDaily") },
+                    { id: "weekly", label: t("admin", "periodWeekly") },
+                    { id: "monthly", label: t("admin", "periodMonthly") },
+                    { id: "yearly", label: t("admin", "periodYearly") },
+                  ] as const).map((p) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => setReportPeriod(p.id)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                         reportPeriod === p.id
-                          ? 'bg-[#2563EB] text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          ? "bg-[#2563EB] text-white shadow-sm"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
                       {p.label}
@@ -2573,31 +3434,32 @@ function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Row 2: Report Category */}
+              {}
               <div>
                 <div className="text-xs font-semibold text-[#64748B] mb-2 flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>{t('admin', 'reportFocus')}</span>
+                  <span>{t("admin", "reportFocus")}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      { id: 'overview', label: t('admin', 'reportOverview') },
-                      { id: 'booking', label: t('admin', 'reportReservations') },
-                      { id: 'revenue', label: t('admin', 'reportRevenue') },
-                      { id: 'occupancy', label: t('admin', 'reportOccupancy') },
-                      { id: 'customer', label: t('admin', 'reportCustomer') },
-                      { id: 'cancellation', label: t('admin', 'reportCancellations') },
-                    ] as const
-                  ).map((reportOption) => (
+                  {([
+                    { id: "overview", label: t("admin", "reportOverview") },
+                    { id: "booking", label: t("admin", "reportReservations") },
+                    { id: "revenue", label: t("admin", "reportRevenue") },
+                    { id: "occupancy", label: t("admin", "reportOccupancy") },
+                    { id: "customer", label: t("admin", "reportCustomer") },
+                    {
+                      id: "cancellation",
+                      label: t("admin", "reportCancellations"),
+                    },
+                  ] as const).map((reportOption) => (
                     <button
                       key={reportOption.id}
                       type="button"
                       onClick={() => setReportType(reportOption.id)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                         reportType === reportOption.id
-                          ? 'bg-[#0F2942] text-[#D4AF37] shadow-sm border border-[#D4AF37]/30'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          ? "bg-[#0b1528] text-[#e4bd55] shadow-sm border border-[#e4bd55]/30"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
                       {reportOption.label}
@@ -2607,71 +3469,119 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Live KPI Overview Preview */}
+            {}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm">
-                <div className="text-xs text-[#64748B] font-medium">{t('admin', 'grossRevenue')}</div>
-                <div className="text-2xl font-bold text-[#0F172A] mt-1">{formatMoney(overview.totalRevenue)}</div>
-                <div className="text-[11px] text-emerald-600 mt-0.5">{t('admin', 'succeededPayments')}</div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  {t("admin", "grossRevenue")}
+                </div>
+                <div className="text-2xl font-bold text-[#182333] mt-1">
+                  {formatMoney(overview.totalRevenue)}
+                </div>
+                <div className="text-[11px] text-emerald-600 mt-0.5">
+                  {t("admin", "succeededPayments")}
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm">
-                <div className="text-xs text-[#64748B] font-medium">{t('admin', 'totalReservations')}</div>
-                <div className="text-2xl font-bold text-[#0F172A] mt-1">{overview.bookingCount}</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">{t('admin', 'allBookingStates')}</div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  {t("admin", "totalReservations")}
+                </div>
+                <div className="text-2xl font-bold text-[#182333] mt-1">
+                  {overview.bookingCount}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  {t("admin", "allBookingStates")}
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm">
-                <div className="text-xs text-[#64748B] font-medium">{t('admin', 'activeHotelListings')}</div>
-                <div className="text-2xl font-bold text-[#0F172A] mt-1">{hotels.length}</div>
-                <div className="text-[11px] text-blue-600 mt-0.5">{t('admin', 'activeRoomsCount', { count: occupancy.rooms })}</div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  {t("admin", "activeHotelListings")}
+                </div>
+                <div className="text-2xl font-bold text-[#182333] mt-1">
+                  {hotels.length}
+                </div>
+                <div className="text-[11px] text-blue-600 mt-0.5">
+                  {t("admin", "activeRoomsCount", { count: occupancy.rooms })}
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm">
-                <div className="text-xs text-[#64748B] font-medium">{t('admin', 'systemOccupancyRate')}</div>
-                <div className="text-2xl font-bold text-indigo-600 mt-1">{(occupancy.occupancyRate * 100).toFixed(1)}%</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">{t('admin', 'roomsOccupied', { count: occupancy.occupiedRoomsToday })}</div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  {t("admin", "systemOccupancyRate")}
+                </div>
+                <div className="text-2xl font-bold text-indigo-600 mt-1">
+                  {(occupancy.occupancyRate * 100).toFixed(1)}%
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  {t("admin", "roomsOccupied", {
+                    count: occupancy.occupiedRoomsToday,
+                  })}
+                </div>
               </div>
             </div>
 
-            {/* Live Preview Table */}
+            {}
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
               <div className="p-5 border-b border-[#F1F5F9] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h2 className="font-bold text-[#0F172A] text-base">
-                    {t('admin', 'reportPreview', {
+                  <h2 className="font-bold text-[#182333] text-base">
+                    {t("admin", "reportPreview", {
                       type: reportType.toUpperCase(),
                       period: reportPeriod.toUpperCase(),
                     })}
                   </h2>
                   <p className="text-xs text-[#64748B] mt-0.5">
-                    {t('admin', 'reportPreviewSubtitle')}
+                    {t("admin", "reportPreviewSubtitle")}
                   </p>
                 </div>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
+                  <thead className="text-xs text-[#64748B] uppercase bg-[#f3efe5]">
                     <tr>
-                      <th className="px-5 py-3">{t('admin', 'colPropertyEntity')}</th>
-                      <th className="px-5 py-3">{t('admin', 'colLocationDetail')}</th>
-                      <th className="px-5 py-3">{t('admin', 'colMetricsValue')}</th>
-                      <th className="px-5 py-3">{t('admin', 'colStatus')}</th>
+                      <th className="px-5 py-3">
+                        {t("admin", "colPropertyEntity")}
+                      </th>
+                      <th className="px-5 py-3">
+                        {t("admin", "colLocationDetail")}
+                      </th>
+                      <th className="px-5 py-3">
+                        {t("admin", "colMetricsValue")}
+                      </th>
+                      <th className="px-5 py-3">{t("admin", "colStatus")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
-                    {reportType === 'overview' &&
+                    {reportType === "overview" &&
                       hotels.map((h) => {
-                        const hBookings = bookings.filter((b) => b.hotelId === h.id)
-                        const hPayments = payments.filter((p) => p.booking?.hotel?.id === h.id && p.status === 'SUCCEEDED')
-                        const hRevenue = hPayments.reduce((s, p) => s + Number(p.amount), 0)
+                        const hBookings = bookings.filter(
+                          (b) => b.hotelId === h.id,
+                        )
+                        const hPayments = payments.filter(
+                          (p) =>
+                            p.booking?.hotel?.id === h.id &&
+                            p.status === "SUCCEEDED",
+                        )
+                        const hRevenue = hPayments.reduce(
+                          (s, p) => s + Number(p.amount),
+                          0,
+                        )
                         return (
                           <tr key={h.id} className="hover:bg-slate-50">
-                            <td className="px-5 py-3.5 font-medium text-[#0F172A]">{h.name}</td>
-                            <td className="px-5 py-3.5 text-xs text-[#64748B]">{h.city?.name || h.address}</td>
+                            <td className="px-5 py-3.5 font-medium text-[#182333]">
+                              {h.name}
+                            </td>
+                            <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                              {h.city?.name || h.address}
+                            </td>
                             <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
-                              {t('admin', 'reportBookingsRevenue', { count: hBookings.length, amount: formatMoney(hRevenue) })}
+                              {t("admin", "reportBookingsRevenue", {
+                                count: hBookings.length,
+                                amount: formatMoney(hRevenue),
+                              })}
                             </td>
                             <td className="px-5 py-3.5">
                               <StatusBadge status={h.status} size="sm" />
@@ -2680,43 +3590,60 @@ function AdminDashboard() {
                         )
                       })}
 
-                    {reportType === 'booking' &&
+                    {reportType === "booking" &&
                       bookings.slice(0, 10).map((b) => (
                         <tr key={b.id} className="hover:bg-slate-50">
-                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">
-                            <span className="font-mono text-xs">{b.id.slice(-8)}</span>
+                          <td className="px-5 py-3.5 font-medium text-[#182333]">
+                            <span className="font-mono text-xs">
+                              {b.id.slice(-8)}
+                            </span>
                           </td>
                           <td className="px-5 py-3.5 text-xs text-[#64748B]">
-                            {formatDate(b.checkIn)} &rarr; {formatDate(b.checkOut)}
+                            {formatDate(b.checkIn)} &rarr;{" "}
+                            {formatDate(b.checkOut)}
                           </td>
-                          <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">{formatMoney(b.totalPrice)}</td>
+                          <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                            {formatMoney(b.totalPrice)}
+                          </td>
                           <td className="px-5 py-3.5">
                             <StatusBadge status={b.status} size="sm" />
                           </td>
                         </tr>
                       ))}
 
-                    {reportType === 'revenue' &&
+                    {reportType === "revenue" &&
                       payments.slice(0, 10).map((p) => (
                         <tr key={p.id} className="hover:bg-slate-50">
-                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">
-                            <span className="font-mono text-xs">{p.providerRef || p.id.slice(-8)}</span>
+                          <td className="px-5 py-3.5 font-medium text-[#182333]">
+                            <span className="font-mono text-xs">
+                              {p.providerRef || p.id.slice(-8)}
+                            </span>
                           </td>
-                          <td className="px-5 py-3.5 text-xs text-[#64748B]">{methodLabels[p.method] ?? p.method}</td>
-                          <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">{formatMoney(p.amount)}</td>
+                          <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                            {methodLabels[p.method] ?? p.method}
+                          </td>
+                          <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                            {formatMoney(p.amount)}
+                          </td>
                           <td className="px-5 py-3.5">
                             <StatusBadge status={p.status} size="sm" />
                           </td>
                         </tr>
                       ))}
 
-                    {(reportType === 'occupancy' || reportType === 'customer' || reportType === 'cancellation') &&
+                    {(reportType === "occupancy" ||
+                      reportType === "customer" ||
+                      reportType === "cancellation") &&
                       hotels.map((h) => (
                         <tr key={h.id} className="hover:bg-slate-50">
-                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">{h.name}</td>
-                          <td className="px-5 py-3.5 text-xs text-[#64748B]">{h.city?.name || h.address}</td>
+                          <td className="px-5 py-3.5 font-medium text-[#182333]">
+                            {h.name}
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                            {h.city?.name || h.address}
+                          </td>
                           <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
-                            {t('admin', 'reportStars', { count: h.starRating })}
+                            {t("admin", "reportStars", { count: h.starRating })}
                           </td>
                           <td className="px-5 py-3.5">
                             <StatusBadge status={h.status} size="sm" />
@@ -2730,34 +3657,40 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Modal: Reject Hotel */}
+        {}
         {rejectHotelTarget && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">{t('admin', 'rejectHotelTitle')}</h3>
+                <h3 className="font-bold text-lg text-[#182333]">
+                  {t("admin", "rejectHotelTitle")}
+                </h3>
                 <button
                   onClick={() => setRejectHotelTarget(null)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label={t('admin', 'closeLabel')}
+                  aria-label={t("admin", "closeLabel")}
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <p className="text-xs text-[#64748B] mb-4">
-                {t('admin', 'rejectHotelDescription', { name: rejectHotelTarget.name })}
+                {t("admin", "rejectHotelDescription", {
+                  name: rejectHotelTarget.name,
+                })}
               </p>
 
               <form onSubmit={handleRejectHotelSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'rejectionReason')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "rejectionReason")}
+                  </label>
                   <textarea
                     required
                     rows={3}
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder={t('admin', 'rejectionReasonPlaceholder')}
+                    placeholder={t("admin", "rejectionReasonPlaceholder")}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm resize-none"
                   />
                 </div>
@@ -2768,14 +3701,16 @@ function AdminDashboard() {
                     onClick={() => setRejectHotelTarget(null)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    {t('admin', 'cancel')}
+                    {t("admin", "cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={rejectingSubmitting || !rejectReason.trim()}
                     className="px-5 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {rejectingSubmitting ? t('admin', 'rejecting') : t('admin', 'confirmRejection')}
+                    {rejectingSubmitting
+                      ? t("admin", "rejecting")
+                      : t("admin", "confirmRejection")}
                   </button>
                 </div>
               </form>
@@ -2783,16 +3718,18 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Modal: Create Coupon */}
+        {}
         {couponModalOpen && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">{t('admin', 'createCoupon')}</h3>
+                <h3 className="font-bold text-lg text-[#182333]">
+                  {t("admin", "createCoupon")}
+                </h3>
                 <button
                   onClick={() => setCouponModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label={t('admin', 'closeLabel')}
+                  aria-label={t("admin", "closeLabel")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2800,37 +3737,64 @@ function AdminDashboard() {
 
               <form onSubmit={handleSaveCoupon} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'couponPromoCode')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "couponPromoCode")}
+                  </label>
                   <input
                     required
                     value={couponForm.code}
-                    onChange={(e) => setCouponForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
-                    placeholder={t('admin', 'couponCodePlaceholder')}
+                    onChange={(e) =>
+                      setCouponForm((p) => ({
+                        ...p,
+                        code: e.target.value.toUpperCase(),
+                      }))
+                    }
+                    placeholder={t("admin", "couponCodePlaceholder")}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm uppercase font-mono"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'discountType')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "discountType")}
+                    </label>
                     <select
                       value={couponForm.discountType}
-                      onChange={(e) => setCouponForm((p) => ({ ...p, discountType: e.target.value }))}
+                      onChange={(e) =>
+                        setCouponForm((p) => ({
+                          ...p,
+                          discountType: e.target.value,
+                        }))
+                      }
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     >
-                      <option value="PERCENTAGE">{t('admin', 'discountPercentage')}</option>
-                      <option value="FIXED_AMOUNT">{t('admin', 'discountFixedAmount')}</option>
+                      <option value="PERCENTAGE">
+                        {t("admin", "discountPercentage")}
+                      </option>
+                      <option value="FIXED_AMOUNT">
+                        {t("admin", "discountFixedAmount")}
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'valueLabel')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "valueLabel")}
+                    </label>
                     <input
                       type="number"
                       required
                       min={1}
-                      max={couponForm.discountType === 'PERCENTAGE' ? 100 : 100000}
+                      max={
+                        couponForm.discountType === "PERCENTAGE" ? 100 : 100000
+                      }
                       value={couponForm.value}
-                      onChange={(e) => setCouponForm((p) => ({ ...p, value: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setCouponForm((p) => ({
+                          ...p,
+                          value: Number(e.target.value),
+                        }))
+                      }
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
@@ -2838,23 +3802,37 @@ function AdminDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'validFrom')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "validFrom")}
+                    </label>
                     <input
                       type="date"
                       required
                       value={couponForm.validFrom}
-                      onChange={(e) => setCouponForm((p) => ({ ...p, validFrom: e.target.value }))}
+                      onChange={(e) =>
+                        setCouponForm((p) => ({
+                          ...p,
+                          validFrom: e.target.value,
+                        }))
+                      }
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'validTo')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "validTo")}
+                    </label>
                     <input
                       type="date"
                       required
                       min={couponForm.validFrom}
                       value={couponForm.validTo}
-                      onChange={(e) => setCouponForm((p) => ({ ...p, validTo: e.target.value }))}
+                      onChange={(e) =>
+                        setCouponForm((p) => ({
+                          ...p,
+                          validTo: e.target.value,
+                        }))
+                      }
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
@@ -2862,22 +3840,36 @@ function AdminDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'usageLimit')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "usageLimit")}
+                    </label>
                     <input
                       type="number"
                       min={1}
                       value={couponForm.usageLimit}
-                      onChange={(e) => setCouponForm((p) => ({ ...p, usageLimit: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setCouponForm((p) => ({
+                          ...p,
+                          usageLimit: Number(e.target.value),
+                        }))
+                      }
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'minSpend')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "minSpend")}
+                    </label>
                     <input
                       type="number"
                       value={couponForm.minBookingAmount}
-                      onChange={(e) => setCouponForm((p) => ({ ...p, minBookingAmount: e.target.value }))}
-                      placeholder={t('admin', 'optional')}
+                      onChange={(e) =>
+                        setCouponForm((p) => ({
+                          ...p,
+                          minBookingAmount: e.target.value,
+                        }))
+                      }
+                      placeholder={t("admin", "optional")}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
@@ -2889,14 +3881,16 @@ function AdminDashboard() {
                     onClick={() => setCouponModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    {t('admin', 'cancel')}
+                    {t("admin", "cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={couponSaving}
                     className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {couponSaving ? t('admin', 'creating') : t('admin', 'createCoupon')}
+                    {couponSaving
+                      ? t("admin", "creating")
+                      : t("admin", "createCoupon")}
                   </button>
                 </div>
               </form>
@@ -2904,16 +3898,18 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Modal: Upsert Platform Setting */}
+        {}
         {settingModalOpen && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">{t('admin', 'settingModalTitle')}</h3>
+                <h3 className="font-bold text-lg text-[#182333]">
+                  {t("admin", "settingModalTitle")}
+                </h3>
                 <button
                   onClick={() => setSettingModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label={t('admin', 'closeLabel')}
+                  aria-label={t("admin", "closeLabel")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2921,34 +3917,52 @@ function AdminDashboard() {
 
               <form onSubmit={handleSaveSetting} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'settingKey')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "settingKey")}
+                  </label>
                   <input
                     required
                     value={settingForm.key}
-                    onChange={(e) => setSettingForm((p) => ({ ...p, key: e.target.value.toUpperCase() }))}
-                    placeholder={t('admin', 'settingKeyPlaceholder')}
+                    onChange={(e) =>
+                      setSettingForm((p) => ({
+                        ...p,
+                        key: e.target.value.toUpperCase(),
+                      }))
+                    }
+                    placeholder={t("admin", "settingKeyPlaceholder")}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm font-mono uppercase"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'settingValue')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "settingValue")}
+                  </label>
                   <textarea
                     required
                     rows={3}
                     value={settingForm.value}
-                    onChange={(e) => setSettingForm((p) => ({ ...p, value: e.target.value }))}
-                    placeholder={t('admin', 'settingValuePlaceholder')}
+                    onChange={(e) =>
+                      setSettingForm((p) => ({ ...p, value: e.target.value }))
+                    }
+                    placeholder={t("admin", "settingValuePlaceholder")}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'settingDescription')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "settingDescription")}
+                  </label>
                   <input
                     value={settingForm.description}
-                    onChange={(e) => setSettingForm((p) => ({ ...p, description: e.target.value }))}
-                    placeholder={t('admin', 'settingDescriptionPlaceholder')}
+                    onChange={(e) =>
+                      setSettingForm((p) => ({
+                        ...p,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder={t("admin", "settingDescriptionPlaceholder")}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                   />
                 </div>
@@ -2959,14 +3973,16 @@ function AdminDashboard() {
                     onClick={() => setSettingModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    {t('admin', 'cancel')}
+                    {t("admin", "cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={settingSaving}
                     className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {settingSaving ? t('admin', 'saving') : t('admin', 'saveSetting')}
+                    {settingSaving
+                      ? t("admin", "saving")
+                      : t("admin", "saveSetting")}
                   </button>
                 </div>
               </form>
@@ -2974,7 +3990,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Modal: Create Manager / User */}
+        {}
         {createUserModalOpen && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
@@ -2984,14 +4000,18 @@ function AdminDashboard() {
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-[#0F172A]">{t('admin', 'createUserTitle')}</h3>
-                    <p className="text-xs text-[#64748B]">{t('admin', 'createUserSubtitle')}</p>
+                    <h3 className="font-bold text-lg text-[#182333]">
+                      {t("admin", "createUserTitle")}
+                    </h3>
+                    <p className="text-xs text-[#64748B]">
+                      {t("admin", "createUserSubtitle")}
+                    </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setCreateUserModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
-                  aria-label={t('admin', 'closeLabel')}
+                  aria-label={t("admin", "closeLabel")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3006,102 +4026,156 @@ function AdminDashboard() {
 
               <form onSubmit={handleCreateUser} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'fullName')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "fullName")}
+                  </label>
                   <input
                     required
                     value={createUserForm.fullName}
-                    onChange={(e) => setCreateUserForm((p) => ({ ...p, fullName: e.target.value }))}
-                    placeholder={t('admin', 'fullNamePlaceholder')}
-                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    onChange={(e) =>
+                      setCreateUserForm((p) => ({
+                        ...p,
+                        fullName: e.target.value,
+                      }))
+                    }
+                    placeholder={t("admin", "fullNamePlaceholder")}
+                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'workEmail')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "workEmail")}
+                    </label>
                     <input
                       required
                       type="email"
                       value={createUserForm.email}
-                      onChange={(e) => setCreateUserForm((p) => ({ ...p, email: e.target.value }))}
-                      placeholder={t('admin', 'workEmailPlaceholder')}
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      onChange={(e) =>
+                        setCreateUserForm((p) => ({
+                          ...p,
+                          email: e.target.value,
+                        }))
+                      }
+                      placeholder={t("admin", "workEmailPlaceholder")}
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'phoneNumber')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "phoneNumber")}
+                    </label>
                     <input
                       type="tel"
                       value={createUserForm.phone}
-                      onChange={(e) => setCreateUserForm((p) => ({ ...p, phone: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateUserForm((p) => ({
+                          ...p,
+                          phone: e.target.value,
+                        }))
+                      }
                       placeholder="+251 91 234 5678"
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'initialPassword')}</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t("admin", "initialPassword")}
+                  </label>
                   <div className="relative">
                     <input
                       required
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       minLength={6}
                       value={createUserForm.password}
-                      onChange={(e) => setCreateUserForm((p) => ({ ...p, password: e.target.value }))}
-                      placeholder={t('admin', 'passwordPlaceholder')}
-                      className="w-full border border-[#CBD5E1] rounded-xl pl-3 pr-10 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      onChange={(e) =>
+                        setCreateUserForm((p) => ({
+                          ...p,
+                          password: e.target.value,
+                        }))
+                      }
+                      placeholder={t("admin", "passwordPlaceholder")}
+                      className="w-full border border-[#CBD5E1] rounded-xl pl-3 pr-10 py-2 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                      aria-label={showPassword ? t('admin', 'hidePassword') : t('admin', 'showPassword')}
+                      aria-label={
+                        showPassword
+                          ? t("admin", "hidePassword")
+                          : t("admin", "showPassword")
+                      }
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    {t('admin', 'preVerifiedHelp')}
+                    {t("admin", "preVerifiedHelp")}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('admin', 'roleLabel')}</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t("admin", "roleLabel")}
+                    </label>
                     <select
                       value={createUserForm.role}
                       onChange={(e) =>
                         setCreateUserForm((p) => ({
                           ...p,
-                          role: e.target.value as 'CUSTOMER' | 'MANAGER' | 'STAFF' | 'ADMIN',
+                          role: e.target
+                            .value as "CUSTOMER" | "MANAGER" | "STAFF" | "ADMIN",
                         }))
                       }
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     >
-                      <option value="MANAGER">{t('admin', 'roleManagerOption')}</option>
-                      <option value="STAFF">{t('admin', 'roleStaffOption')}</option>
-                      <option value="CUSTOMER">{t('admin', 'roleCustomerOption')}</option>
-                      <option value="ADMIN">{t('admin', 'roleAdminOption')}</option>
+                      <option value="MANAGER">
+                        {t("admin", "roleManagerOption")}
+                      </option>
+                      <option value="STAFF">
+                        {t("admin", "roleStaffOption")}
+                      </option>
+                      <option value="CUSTOMER">
+                        {t("admin", "roleCustomerOption")}
+                      </option>
+                      <option value="ADMIN">
+                        {t("admin", "roleAdminOption")}
+                      </option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] mb-1">
-                      {t('admin', 'assignHotel')}{' '}
-                      {createUserForm.role === 'MANAGER' && (
-                        <span className="text-[#2563EB] font-normal">{t('admin', 'primary')}</span>
+                      {t("admin", "assignHotel")}{" "}
+                      {createUserForm.role === "MANAGER" && (
+                        <span className="text-[#2563EB] font-normal">
+                          {t("admin", "primary")}
+                        </span>
                       )}
                     </label>
                     <select
                       value={createUserForm.hotelId}
-                      onChange={(e) => setCreateUserForm((p) => ({ ...p, hotelId: e.target.value }))}
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      onChange={(e) =>
+                        setCreateUserForm((p) => ({
+                          ...p,
+                          hotelId: e.target.value,
+                        }))
+                      }
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     >
-                      <option value="">{t('admin', 'noHotelAssigned')}</option>
+                      <option value="">{t("admin", "noHotelAssigned")}</option>
                       {hotels.map((h) => (
                         <option key={h.id} value={h.id}>
-                          {h.name} {h.city?.name ? `(${h.city.name})` : ''}
+                          {h.name} {h.city?.name ? `(${h.city.name})` : ""}
                         </option>
                       ))}
                     </select>
@@ -3114,7 +4188,7 @@ function AdminDashboard() {
                     onClick={() => setCreateUserModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold hover:text-slate-900 cursor-pointer"
                   >
-                    {t('admin', 'cancel')}
+                    {t("admin", "cancel")}
                   </button>
                   <button
                     type="submit"
@@ -3124,10 +4198,10 @@ function AdminDashboard() {
                     {userCreating ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{t('admin', 'creating')}</span>
+                        <span>{t("admin", "creating")}</span>
                       </>
                     ) : (
-                      <span>{t('admin', 'createAccount')}</span>
+                      <span>{t("admin", "createAccount")}</span>
                     )}
                   </button>
                 </div>
@@ -3136,7 +4210,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Reassign / Assign Hotel Manager Modal */}
+        {}
         {assignManagerHotel && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
@@ -3146,17 +4220,21 @@ function AdminDashboard() {
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-[#0F172A]">{t('admin', 'assignManagerTitle')}</h3>
-                    <p className="text-xs text-slate-500">{assignManagerHotel.name}</p>
+                    <h3 className="font-bold text-lg text-[#182333]">
+                      {t("admin", "assignManagerTitle")}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {assignManagerHotel.name}
+                    </p>
                   </div>
                 </div>
                 <button
                   onClick={() => {
                     setAssignManagerHotel(null)
-                    setSelectedManagerUserId('')
+                    setSelectedManagerUserId("")
                   }}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
-                  aria-label={t('admin', 'closeLabel')}
+                  aria-label={t("admin", "closeLabel")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3165,20 +4243,20 @@ function AdminDashboard() {
               <form onSubmit={handleAssignManagerSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#334155] mb-1">
-                    {t('admin', 'selectManagerUser')}
+                    {t("admin", "selectManagerUser")}
                   </label>
                   <select
                     required
                     value={selectedManagerUserId}
                     onChange={(e) => setSelectedManagerUserId(e.target.value)}
-                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                   >
-                    <option value="">{t('admin', 'chooseAccount')}</option>
+                    <option value="">{t("admin", "chooseAccount")}</option>
                     {users
                       .filter((u) => u.isActive)
                       .map((u) => (
                         <option key={u.id} value={u.id}>
-                          {t('admin', 'managerOption', {
+                          {t("admin", "managerOption", {
                             name: u.fullName,
                             email: u.email,
                             role: roleLabels[u.role] ?? u.role,
@@ -3187,7 +4265,7 @@ function AdminDashboard() {
                       ))}
                   </select>
                   <p className="text-[11px] text-slate-500 mt-1.5">
-                    {t('admin', 'managerRoleHelp')}
+                    {t("admin", "managerRoleHelp")}
                   </p>
                 </div>
 
@@ -3196,11 +4274,11 @@ function AdminDashboard() {
                     type="button"
                     onClick={() => {
                       setAssignManagerHotel(null)
-                      setSelectedManagerUserId('')
+                      setSelectedManagerUserId("")
                     }}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold hover:text-slate-900 cursor-pointer"
                   >
-                    {t('admin', 'cancel')}
+                    {t("admin", "cancel")}
                   </button>
                   <button
                     type="submit"
@@ -3210,10 +4288,10 @@ function AdminDashboard() {
                     {assigningManager ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{t('admin', 'assigning')}</span>
+                        <span>{t("admin", "assigning")}</span>
                       </>
                     ) : (
-                      <span>{t('admin', 'saveAssignment')}</span>
+                      <span>{t("admin", "saveAssignment")}</span>
                     )}
                   </button>
                 </div>
@@ -3221,7 +4299,7 @@ function AdminDashboard() {
             </div>
           </div>
         )}
-        {/* Modal: Create Hotel Property */}
+        {}
         {createHotelModalOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 border border-slate-100">
@@ -3231,15 +4309,19 @@ function AdminDashboard() {
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-[#0F172A]">Add New Hotel Property</h3>
-                    <p className="text-xs text-[#64748B]">Provision and publish a new hotel listing on the platform</p>
+                    <h3 className="font-bold text-lg text-[#182333]">
+                      Add New Hotel Property
+                    </h3>
+                    <p className="text-xs text-[#64748B]">
+                      Provision and publish a new hotel listing on the platform
+                    </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setCreateHotelModalOpen(false)
-                    setCreateHotelError('')
+                    setCreateHotelError("")
                   }}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Close"
@@ -3248,7 +4330,10 @@ function AdminDashboard() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateHotelSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
+              <form
+                onSubmit={handleCreateHotelSubmit}
+                className="flex-1 overflow-y-auto p-6 space-y-4 text-left"
+              >
                 {createHotelError && (
                   <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -3264,9 +4349,14 @@ function AdminDashboard() {
                     required
                     type="text"
                     value={createHotelForm.name}
-                    onChange={(e) => setCreateHotelForm((p) => ({ ...p, name: e.target.value }))}
+                    onChange={(e) =>
+                      setCreateHotelForm((p) => ({
+                        ...p,
+                        name: e.target.value,
+                      }))
+                    }
                     placeholder="e.g. Ethiopian Skylight Hotel"
-                    className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                   />
                 </div>
 
@@ -3279,7 +4369,7 @@ function AdminDashboard() {
                       required
                       value={createHotelForm.countryId}
                       onChange={(e) => handleCountryChange(e.target.value)}
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     >
                       {countries.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -3296,12 +4386,19 @@ function AdminDashboard() {
                     <select
                       required
                       value={createHotelForm.cityId}
-                      onChange={(e) => setCreateHotelForm((p) => ({ ...p, cityId: e.target.value }))}
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      onChange={(e) =>
+                        setCreateHotelForm((p) => ({
+                          ...p,
+                          cityId: e.target.value,
+                        }))
+                      }
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     >
                       <option value="">-- Select City --</option>
                       {(
-                        countries.find((c) => c.id === createHotelForm.countryId)?.cities || []
+                        countries.find(
+                          (c) => c.id === createHotelForm.countryId,
+                        )?.cities || []
                       ).map((city) => (
                         <option key={city.id} value={city.id}>
                           {city.name}
@@ -3320,9 +4417,14 @@ function AdminDashboard() {
                       required
                       type="text"
                       value={createHotelForm.address}
-                      onChange={(e) => setCreateHotelForm((p) => ({ ...p, address: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateHotelForm((p) => ({
+                          ...p,
+                          address: e.target.value,
+                        }))
+                      }
                       placeholder="e.g. Airport Road, Bole Sub-City"
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     />
                   </div>
 
@@ -3332,8 +4434,13 @@ function AdminDashboard() {
                     </label>
                     <select
                       value={createHotelForm.starRating}
-                      onChange={(e) => setCreateHotelForm((p) => ({ ...p, starRating: Number(e.target.value) }))}
-                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      onChange={(e) =>
+                        setCreateHotelForm((p) => ({
+                          ...p,
+                          starRating: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     >
                       <option value={5}>5 Stars ★★★★★</option>
                       <option value={4}>4 Stars ★★★★</option>
@@ -3353,44 +4460,48 @@ function AdminDashboard() {
                     onChange={(e) =>
                       setCreateHotelForm((p) => ({
                         ...p,
-                        status: e.target.value as 'ACTIVE' | 'PENDING_APPROVAL',
+                        status: e.target.value as "ACTIVE" | "PENDING_APPROVAL",
                       }))
                     }
-                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                   >
-                    <option value="ACTIVE">ACTIVE (Published Immediately & Bookable)</option>
-                    <option value="PENDING_APPROVAL">PENDING_APPROVAL (Pending Verification)</option>
+                    <option value="ACTIVE">
+                      ACTIVE (Published Immediately & Bookable)
+                    </option>
+                    <option value="PENDING_APPROVAL">
+                      PENDING_APPROVAL (Pending Verification)
+                    </option>
                   </select>
                 </div>
 
-                {/* General Manager Assignment & Credential Creation */}
+                {}
                 <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/80 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-[#2563EB]" />
-                      <label className="text-xs font-bold text-[#0F172A] tracking-tight">
+                      <label className="text-xs font-bold text-[#182333] tracking-tight">
                         General Manager & Access Credentials
                       </label>
                     </div>
                     <div className="flex items-center gap-1 p-0.5 bg-slate-200/90 rounded-lg text-xs font-semibold shrink-0">
                       <button
                         type="button"
-                        onClick={() => setHotelManagerMode('EXISTING')}
+                        onClick={() => setHotelManagerMode("EXISTING")}
                         className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                          hotelManagerMode === 'EXISTING'
-                            ? 'bg-white text-[#2563EB] shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                          hotelManagerMode === "EXISTING"
+                            ? "bg-white text-[#2563EB] shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         Existing Account
                       </button>
                       <button
                         type="button"
-                        onClick={() => setHotelManagerMode('CREATE_NEW')}
+                        onClick={() => setHotelManagerMode("CREATE_NEW")}
                         className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                          hotelManagerMode === 'CREATE_NEW'
-                            ? 'bg-white text-[#2563EB] shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                          hotelManagerMode === "CREATE_NEW"
+                            ? "bg-white text-[#2563EB] shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         + Create New Manager
@@ -3398,19 +4509,30 @@ function AdminDashboard() {
                     </div>
                   </div>
 
-                  {hotelManagerMode === 'EXISTING' ? (
+                  {hotelManagerMode === "EXISTING" ? (
                     <div>
                       <label className="block text-xs font-semibold text-[#334155] mb-1">
                         Select Registered Manager
                       </label>
                       <select
                         value={createHotelForm.managerId}
-                        onChange={(e) => setCreateHotelForm((p) => ({ ...p, managerId: e.target.value }))}
-                        className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        onChange={(e) =>
+                          setCreateHotelForm((p) => ({
+                            ...p,
+                            managerId: e.target.value,
+                          }))
+                        }
+                        className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                       >
-                        <option value="">-- Unassigned (Assign Later) --</option>
+                        <option value="">
+                          -- Unassigned (Assign Later) --
+                        </option>
                         {users
-                          .filter((u) => u.isActive && (u.role === 'MANAGER' || u.role === 'ADMIN'))
+                          .filter(
+                            (u) =>
+                              u.isActive &&
+                              (u.role === "MANAGER" || u.role === "ADMIN"),
+                          )
                           .map((u) => (
                             <option key={u.id} value={u.id}>
                               {u.fullName} ({u.email}) [{u.role}]
@@ -3418,13 +4540,16 @@ function AdminDashboard() {
                           ))}
                       </select>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        Choose an existing manager account or leave unassigned to link a manager later.
+                        Choose an existing manager account or leave unassigned
+                        to link a manager later.
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-3 animate-in fade-in duration-150">
                       <p className="text-[11px] text-slate-600">
-                        Provision brand-new login credentials for this hotel's General Manager. The account will be activated and assigned immediately.
+                        Provision brand-new login credentials for this hotel's
+                        General Manager. The account will be activated and
+                        assigned immediately.
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -3432,12 +4557,17 @@ function AdminDashboard() {
                             Manager Full Name *
                           </label>
                           <input
-                            required={hotelManagerMode === 'CREATE_NEW'}
+                            required={hotelManagerMode === "CREATE_NEW"}
                             type="text"
                             value={newHotelManagerForm.fullName}
-                            onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, fullName: e.target.value }))}
+                            onChange={(e) =>
+                              setNewHotelManagerForm((p) => ({
+                                ...p,
+                                fullName: e.target.value,
+                              }))
+                            }
                             placeholder="e.g. Dawit Haile"
-                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                           />
                         </div>
                         <div>
@@ -3445,12 +4575,17 @@ function AdminDashboard() {
                             Manager Work Email *
                           </label>
                           <input
-                            required={hotelManagerMode === 'CREATE_NEW'}
+                            required={hotelManagerMode === "CREATE_NEW"}
                             type="email"
                             value={newHotelManagerForm.email}
-                            onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, email: e.target.value }))}
+                            onChange={(e) =>
+                              setNewHotelManagerForm((p) => ({
+                                ...p,
+                                email: e.target.value,
+                              }))
+                            }
                             placeholder="manager@hotel.com"
-                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                           />
                         </div>
                       </div>
@@ -3471,20 +4606,39 @@ function AdminDashboard() {
                           </div>
                           <div className="relative">
                             <input
-                              required={hotelManagerMode === 'CREATE_NEW'}
-                              type={showNewHotelManagerPassword ? 'text' : 'password'}
+                              required={hotelManagerMode === "CREATE_NEW"}
+                              type={
+                                showNewHotelManagerPassword
+                                  ? "text"
+                                  : "password"
+                              }
                               value={newHotelManagerForm.password}
-                              onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, password: e.target.value }))}
+                              onChange={(e) =>
+                                setNewHotelManagerForm((p) => ({
+                                  ...p,
+                                  password: e.target.value,
+                                }))
+                              }
                               placeholder="Min. 8 characters"
-                              className="w-full border border-[#CBD5E1] rounded-xl pl-3 pr-10 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                              className="w-full border border-[#CBD5E1] rounded-xl pl-3 pr-10 py-2 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                             />
                             <button
                               type="button"
-                              onClick={() => setShowNewHotelManagerPassword((prev) => !prev)}
+                              onClick={() =>
+                                setShowNewHotelManagerPassword((prev) => !prev)
+                              }
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                              aria-label={showNewHotelManagerPassword ? 'Hide password' : 'Show password'}
+                              aria-label={
+                                showNewHotelManagerPassword
+                                  ? "Hide password"
+                                  : "Show password"
+                              }
                             >
-                              {showNewHotelManagerPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              {showNewHotelManagerPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -3496,9 +4650,14 @@ function AdminDashboard() {
                           <input
                             type="tel"
                             value={newHotelManagerForm.phone}
-                            onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, phone: e.target.value }))}
+                            onChange={(e) =>
+                              setNewHotelManagerForm((p) => ({
+                                ...p,
+                                phone: e.target.value,
+                              }))
+                            }
                             placeholder="+251 91 123 4567"
-                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#182333] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                           />
                         </div>
                       </div>
@@ -3519,9 +4678,14 @@ function AdminDashboard() {
                     required
                     rows={3}
                     value={createHotelForm.description}
-                    onChange={(e) => setCreateHotelForm((p) => ({ ...p, description: e.target.value }))}
+                    onChange={(e) =>
+                      setCreateHotelForm((p) => ({
+                        ...p,
+                        description: e.target.value,
+                      }))
+                    }
                     placeholder="Enter an inviting description of the hotel property, key amenities, and surrounding highlights..."
-                    className="w-full border border-[#CBD5E1] rounded-xl p-3 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    className="w-full border border-[#CBD5E1] rounded-xl p-3 text-sm text-[#182333] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                   />
                 </div>
 
@@ -3551,7 +4715,9 @@ function AdminDashboard() {
                       <span className="text-xs font-semibold text-slate-700">
                         Click to select hotel images or drag and drop
                       </span>
-                      <span className="text-[11px] text-slate-400">PNG, JPG, WEBP up to 10MB each</span>
+                      <span className="text-[11px] text-slate-400">
+                        PNG, JPG, WEBP up to 10MB each
+                      </span>
                     </label>
 
                     {hotelImagesFiles.length > 0 && (
@@ -3561,11 +4727,15 @@ function AdminDashboard() {
                             key={idx}
                             className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800"
                           >
-                            <span className="truncate max-w-[150px]">{file.name}</span>
+                            <span className="truncate max-w-[150px]">
+                              {file.name}
+                            </span>
                             <button
                               type="button"
                               onClick={() =>
-                                setHotelImagesFiles((prev) => prev.filter((_, i) => i !== idx))
+                                setHotelImagesFiles((prev) =>
+                                  prev.filter((_, i) => i !== idx),
+                                )
                               }
                               className="text-blue-500 hover:text-blue-800 font-bold ml-1 cursor-pointer"
                             >
@@ -3583,7 +4753,7 @@ function AdminDashboard() {
                     type="button"
                     onClick={() => {
                       setCreateHotelModalOpen(false)
-                      setCreateHotelError('')
+                      setCreateHotelError("")
                     }}
                     className="px-4 py-2.5 text-sm text-[#64748B] font-semibold hover:text-slate-900 cursor-pointer"
                   >

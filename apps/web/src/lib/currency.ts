@@ -10,8 +10,10 @@ export function formatUSD(value: number | string) {
   return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export function convertEtbToUsd(etbAmount: number | string, rate = USD_TO_ETB_ESTIMATE): number {
+export function convertEtbToUsd(
+  etbAmount: number | string,
+  rate = USD_TO_ETB_ESTIMATE,
+): number {
   const num = Number(etbAmount) || 0
   return Number((num / rate).toFixed(2))
 }
-

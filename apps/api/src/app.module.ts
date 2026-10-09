@@ -11,6 +11,8 @@ import { requestIdMiddleware } from './common/logging/request-id.middleware';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { PermissionsGuard } from './common/guards/permissions.guard';
+import { ResourceScopeHelper } from './common/guards/resource-scope.helper';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './common/storage/storage.module';
 import { CacheModule } from './common/cache/cache.module';
@@ -36,6 +38,9 @@ import { ContactModule } from './modules/contact/contact.module';
 import { AiModule } from './modules/ai/ai.module';
 import { DiscoverModule } from './modules/discover/discover.module';
 import { TripModule } from './modules/trip/trip.module';
+import { TransportationModule } from './modules/transportation/transportation.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { NavigationModule } from './modules/navigation/navigation.module';
 
 @Module({
   imports: [
@@ -74,6 +79,9 @@ import { TripModule } from './modules/trip/trip.module';
     AiModule,
     DiscoverModule,
     TripModule,
+    TransportationModule,
+    DashboardModule,
+    NavigationModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
@@ -81,6 +89,8 @@ import { TripModule } from './modules/trip/trip.module';
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
+    ResourceScopeHelper,
     { provide: APP_GUARD, useClass: FeatureFlagGuard },
   ],
 })

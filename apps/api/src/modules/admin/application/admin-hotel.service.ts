@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   Optional,
@@ -224,10 +225,23 @@ export class AdminHotelService {
       where: { id: hotelId },
       select: { id: true, name: true, managerId: true },
     });
-    const updated = await this.db.hotel.update({
-      where: { id: hotelId },
-      data: { managerId: dto.managerId },
-    });
+    let updated;
+    try {
+      updated = await this.db.hotel.update({
+        where: { id: hotelId },
+        data: { managerId: dto.managerId },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'This manager is already assigned to another hotel.',
+        );
+      }
+      throw error;
+    }
     await this.audit.record(actorId, 'REASSIGN_MANAGER', 'Hotel', hotelId, {
       managerId: { from: before.managerId, to: dto.managerId },
     });

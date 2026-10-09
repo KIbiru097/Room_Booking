@@ -18,13 +18,13 @@ export default function AIChat(props: AIChatProps) {
 
   if (!tokens) return null
 
+  if (props.variant === "inline") {
+    return <AIChatPanel {...props} initialOpen />
+  }
+
   if (isOpen) {
     return (
-      <AIChatPanel
-        {...props}
-        initialOpen
-        onClose={() => setIsOpen(false)}
-      />
+      <AIChatPanel {...props} initialOpen onClose={() => setIsOpen(false)} />
     )
   }
 
@@ -33,11 +33,13 @@ export default function AIChat(props: AIChatProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2.5 rounded-full border-2 border-[#D4AF37]/50 bg-[#0F2942] px-4 py-3 text-white shadow-2xl transition hover:scale-105 hover:bg-[#1E3A5F] active:scale-95"
+        className="flex items-center gap-2.5 rounded-full border-2 border-[#e4bd55]/50 bg-[#0b1528] px-4 py-3 text-white shadow-2xl transition hover:scale-105 hover:bg-[#1E3A5F] active:scale-95"
         aria-label={t("common", "openAiAssistant")}
       >
-        <Sparkles className="h-4 w-4 animate-pulse text-[#D4AF37]" />
-        <span className="font-serif text-xs font-bold">{t("common", "askAiLabel")}</span>
+        <Sparkles className="h-4 w-4 animate-pulse text-[#e4bd55]" />
+        <span className="font-serif text-xs font-bold">
+          {t("common", "askAiLabel")}
+        </span>
       </button>
     </div>
   )

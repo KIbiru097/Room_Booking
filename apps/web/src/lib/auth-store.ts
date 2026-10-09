@@ -1,6 +1,6 @@
-import { create } from 'zustand'
-import { apiClient, configureAuthInterceptors, ApiError } from './axios'
-import type { User, AuthTokens } from './types'
+import { create } from "zustand"
+import { apiClient, configureAuthInterceptors, ApiError } from "./axios"
+import type { User, AuthTokens } from "./types"
 
 export interface AuthResponse {
   user: User
@@ -11,13 +11,15 @@ export interface AuthResponse {
   challengeToken?: string
 }
 
-const STORAGE_KEY = 'yayetech.session'
-const LEGACY_STORAGE_KEY = 'luxstay.session'
+const STORAGE_KEY = "yayetech.session"
+const LEGACY_STORAGE_KEY = "luxstay.session"
 
 function getSavedSession(): AuthResponse | null {
-  if (typeof window === 'undefined') return null
+  if (typeof window === "undefined") return null
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY)
+    const raw =
+      localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_STORAGE_KEY)
     if (!raw) return null
     return JSON.parse(raw)
   } catch {
@@ -26,7 +28,7 @@ function getSavedSession(): AuthResponse | null {
 }
 
 function persistSession(data: AuthResponse | null) {
-  if (typeof window === 'undefined') return
+  if (typeof window === "undefined") return
   try {
     if (data) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -44,7 +46,7 @@ interface AuthState {
   tokens: AuthTokens | null
   loading: boolean
   isInitialized: boolean
-  
+
   // Role helpers
   isAdmin: boolean
   isManager: boolean
@@ -62,8 +64,22 @@ interface AuthState {
 }
 
 export const useAuth = create<AuthState>((set, get) => {
+  const clearSession = () => {
+    set({
+      user: null,
+      tokens: null,
+      isAdmin: false,
+      isManager: false,
+      isStaff: false,
+      isCustomer: false,
+      loading: false,
+      isInitialized: true,
+    })
+    persistSession(null)
+  }
+
   // Wire up Axios interceptors to this store
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     configureAuthInterceptors({
       getAccessToken: () => get().tokens?.accessToken,
       getRefreshToken: () => get().tokens?.refreshToken,
@@ -74,9 +90,10 @@ export const useAuth = create<AuthState>((set, get) => {
         }
       },
       onAuthFailed: () => {
-        get().logout()
+        clearSession()
       },
     })
+    window.addEventListener("yayetech:auth-expired", clearSession)
   }
 
   return {
@@ -93,11 +110,20 @@ export const useAuth = create<AuthState>((set, get) => {
     login: async (email: string, password: string) => {
       set({ loading: true })
       try {
-        const res = await apiClient.post<AuthResponse>('/auth/login', { email, password })
+        const res = await apiClient.post<AuthResponse>("/auth/login", {
+          email,
+          password,
+        })
         const data = res.data
 
-        if (!['ADMIN', 'MANAGER', 'CUSTOMER', 'STAFF'].includes(data.user.role)) {
-          throw new ApiError('This portal is available to registered accounts only.', 403, 'FORBIDDEN')
+        if (
+          !["ADMIN", "MANAGER", "CUSTOMER", "STAFF"].includes(data.user.role)
+        ) {
+          throw new ApiError(
+            "This portal is available to registered accounts only.",
+            403,
+            "FORBIDDEN",
+          )
         }
 
         // An MFA challenge is not an authenticated session; the OTP screen must verify it first.
@@ -108,11 +134,14 @@ export const useAuth = create<AuthState>((set, get) => {
 
         set({
           user: data.user,
-          tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken },
-          isAdmin: data.user.role === 'ADMIN',
-          isManager: data.user.role === 'MANAGER',
-          isStaff: data.user.role === 'STAFF',
-          isCustomer: data.user.role === 'CUSTOMER',
+          tokens: {
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+          },
+          isAdmin: data.user.role === "ADMIN",
+          isManager: data.user.role === "MANAGER",
+          isStaff: data.user.role === "STAFF",
+          isCustomer: data.user.role === "CUSTOMER",
           loading: false,
           isInitialized: true,
         })
@@ -127,25 +156,19 @@ export const useAuth = create<AuthState>((set, get) => {
     logout: () => {
       const token = get().tokens?.accessToken
       if (token) {
-        apiClient.post('/auth/logout').catch(() => undefined)
+        apiClient.post("/auth/logout").catch(() => undefined)
       }
-      set({
-        user: null,
-        tokens: null,
-        isAdmin: false,
-        isManager: false,
-        isStaff: false,
-        isCustomer: false,
-        loading: false,
-      })
-      persistSession(null)
+      clearSession()
     },
 
     refreshAuth: async () => {
       const { tokens, user } = get()
       if (!tokens?.refreshToken) return
       try {
-        const res = await apiClient.post<{ accessToken: string; refreshToken: string }>('/auth/refresh', {
+        const res = await apiClient.post<{
+          accessToken: string
+          refreshToken: string
+        }>("/auth/refresh", {
           refreshToken: tokens.refreshToken,
         })
         const { accessToken, refreshToken } = res.data
@@ -160,10 +183,10 @@ export const useAuth = create<AuthState>((set, get) => {
     setUser: (user: User) => {
       set({
         user,
-        isAdmin: user.role === 'ADMIN',
-        isManager: user.role === 'MANAGER',
-        isStaff: user.role === 'STAFF',
-        isCustomer: user.role === 'CUSTOMER',
+        isAdmin: user.role === "ADMIN",
+        isManager: user.role === "MANAGER",
+        isStaff: user.role === "STAFF",
+        isCustomer: user.role === "CUSTOMER",
       })
       const saved = getSavedSession()
       if (saved) {
@@ -185,11 +208,14 @@ export const useAuth = create<AuthState>((set, get) => {
     setSession: (data: AuthResponse) => {
       set({
         user: data.user,
-        tokens: { accessToken: data.accessToken, refreshToken: data.refreshToken },
-        isAdmin: data.user.role === 'ADMIN',
-        isManager: data.user.role === 'MANAGER',
-        isStaff: data.user.role === 'STAFF',
-        isCustomer: data.user.role === 'CUSTOMER',
+        tokens: {
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        },
+        isAdmin: data.user.role === "ADMIN",
+        isManager: data.user.role === "MANAGER",
+        isStaff: data.user.role === "STAFF",
+        isCustomer: data.user.role === "CUSTOMER",
         isInitialized: true,
       })
       persistSession(data)
@@ -197,18 +223,25 @@ export const useAuth = create<AuthState>((set, get) => {
 
     loadFromStorage: () => {
       const saved = getSavedSession()
-      if (!saved || !saved.user || !['ADMIN', 'MANAGER', 'CUSTOMER', 'STAFF'].includes(saved.user.role)) {
+      if (
+        !saved ||
+        !saved.user ||
+        !["ADMIN", "MANAGER", "CUSTOMER", "STAFF"].includes(saved.user.role)
+      ) {
         persistSession(null)
         set({ isInitialized: true })
         return
       }
       set({
         user: saved.user,
-        tokens: { accessToken: saved.accessToken, refreshToken: saved.refreshToken },
-        isAdmin: saved.user.role === 'ADMIN',
-        isManager: saved.user.role === 'MANAGER',
-        isStaff: saved.user.role === 'STAFF',
-        isCustomer: saved.user.role === 'CUSTOMER',
+        tokens: {
+          accessToken: saved.accessToken,
+          refreshToken: saved.refreshToken,
+        },
+        isAdmin: saved.user.role === "ADMIN",
+        isManager: saved.user.role === "MANAGER",
+        isStaff: saved.user.role === "STAFF",
+        isCustomer: saved.user.role === "CUSTOMER",
         isInitialized: true,
       })
     },

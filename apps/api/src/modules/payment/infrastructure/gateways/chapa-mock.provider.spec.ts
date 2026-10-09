@@ -4,6 +4,7 @@ describe('ChapaMockProvider', () => {
   let provider: ChapaMockProvider;
   let mockOtpService: any;
   let mockSmsService: any;
+  let mockRealSmsService: any;
   let mockBank: any;
   let mockDb: any;
 
@@ -19,6 +20,9 @@ describe('ChapaMockProvider', () => {
     mockSmsService = {
       send: jest.fn(),
     };
+    mockRealSmsService = {
+      send: jest.fn().mockResolvedValue({ provider: 'mock', accepted: true }),
+    } as any;
     mockBank = {
       simulateAuth: jest.fn().mockResolvedValue({
         approved: true,
@@ -38,6 +42,7 @@ describe('ChapaMockProvider', () => {
       mockBank,
       mockOtpService,
       mockSmsService,
+      mockRealSmsService,
       mockDb,
     );
   });

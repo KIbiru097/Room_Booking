@@ -1,7 +1,13 @@
-'use client'
+"use client"
+// Memoized color array — only recomputed when the colorStops reference changes,
+// not on every animation frame.
+// Throttle to ~30 fps — imperceptible for a slow ambient shimmer,
+// halves GPU work vs the default 60 fps.
+// Pause the RAF loop while the tab is hidden; resume when it's visible again.
+// eslint-disable-next-line react-hooks/exhaustive-deps
 
-import { useEffect, useRef } from 'react'
-import { Renderer, Program, Mesh, Color, Triangle } from 'ogl'
+import { useEffect, useRef } from "react"
+import { Renderer, Program, Mesh, Color, Triangle } from "ogl"
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -91,38 +97,42 @@ interface AuroraProps {
 }
 
 export default function Aurora({
-  colorStops = ['#1E3A8A', '#A16207', '#1E3A8A'],
+  colorStops = ["#1E3A8A", "#A16207", "#1E3A8A"],
   amplitude = 1.2,
   blend = 0.6,
   speed = 0.8,
   lightMode = false,
 }: AuroraProps) {
-  const propsRef = useRef<AuroraProps>({ colorStops, amplitude, blend, speed, lightMode })
+  const propsRef = useRef<AuroraProps>({
+    colorStops,
+    amplitude,
+    blend,
+    speed,
+    lightMode,
+  })
   propsRef.current = { colorStops, amplitude, blend, speed, lightMode }
   const ctnDom = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const ctn = ctnDom.current
     if (!ctn) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: true })
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const renderer = new Renderer({
+      alpha: true,
+      premultipliedAlpha: true,
+      antialias: true,
+    })
     const gl = renderer.gl
     gl.clearColor(0, 0, 0, 0)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-    gl.canvas.style.backgroundColor = 'transparent'
-    let program: Program | undefined
-    function resize() {
-      if (!ctn) return
-      renderer.setSize(ctn.offsetWidth, ctn.offsetHeight)
-      if (program) program.uniforms.uResolution.value = [ctn.offsetWidth, ctn.offsetHeight]
-    }
-    window.addEventListener('resize', resize)
-    const geometry = new Triangle(gl)
-    if (geometry.attributes.uv) delete geometry.attributes.uv
+    gl.canvas.style.backgroundColor = "transparent"
     const toColorArray = (stops: string[]) =>
-      stops.map(hex => { const c = new Color(hex); return [c.r, c.g, c.b] })
-    program = new Program(gl, {
+      stops.map((hex) => {
+        const c = new Color(hex)
+        return [c.r, c.g, c.b]
+      })
+    const program = new Program(gl, {
       vertex: VERT,
       fragment: FRAG,
       uniforms: {
@@ -134,16 +144,26 @@ export default function Aurora({
         uLightMode: { value: lightMode ? 1 : 0 },
       },
     })
+    function resize() {
+      if (!ctn) return
+      renderer.setSize(ctn.offsetWidth, ctn.offsetHeight)
+      if (program)
+        program.uniforms.uResolution.value = [ctn.offsetWidth, ctn.offsetHeight]
+    }
+    window.addEventListener("resize", resize)
+    const geometry = new Triangle(gl)
+    if (geometry.attributes.uv) delete geometry.attributes.uv
     const mesh = new Mesh(gl, { geometry, program })
     ctn.appendChild(gl.canvas)
     let animateId = 0
     let lastFrameTs = 0
-    // Memoized color array — only recomputed when the colorStops reference changes,
-    // not on every animation frame.
     let cachedStops: string[] = []
     let cachedColorArray: number[][] = []
     const getColorArray = (stops: string[]) => {
-      if (stops !== cachedStops) {
+      if (
+        stops !==
+        cachedStops
+      ) {
         cachedStops = stops
         cachedColorArray = toColorArray(stops)
       }
@@ -151,21 +171,33 @@ export default function Aurora({
     }
     const update = (ts: number) => {
       animateId = requestAnimationFrame(update)
-      // Throttle to ~30 fps — imperceptible for a slow ambient shimmer,
-      // halves GPU work vs the default 60 fps.
       if (ts - lastFrameTs < 32) return
       lastFrameTs = ts
       const p = propsRef.current
       if (program) {
-        program.uniforms.uTime.value = (ts * 0.001) * (p.speed ?? speed)
-        program.uniforms.uAmplitude.value = p.amplitude ?? amplitude
-        program.uniforms.uBlend.value = p.blend ?? blend
-        program.uniforms.uLightMode.value = (p.lightMode ?? lightMode) ? 1 : 0
-        program.uniforms.uColorStops.value = getColorArray(p.colorStops ?? colorStops)
+        program.uniforms.uTime.value =
+          ts *
+          0.001 *
+          (p.speed ??
+            speed)
+        program.uniforms.uAmplitude.value =
+          p.amplitude ??
+          amplitude
+        program.uniforms.uBlend.value =
+          p.blend ??
+          blend
+        program.uniforms.uLightMode.value =
+          (p.lightMode ??
+          lightMode)
+            ? 1
+            : 0
+        program.uniforms.uColorStops.value = getColorArray(
+          p.colorStops ??
+            colorStops,
+        )
         renderer.render({ scene: mesh })
       }
     }
-    // Pause the RAF loop while the tab is hidden; resume when it's visible again.
     const handleVisibility = () => {
       if (document.hidden) {
         cancelAnimationFrame(animateId)
@@ -174,15 +206,20 @@ export default function Aurora({
         animateId = requestAnimationFrame(update)
       }
     }
-    document.addEventListener('visibilitychange', handleVisibility)
+    document.addEventListener("visibilitychange", handleVisibility)
     animateId = requestAnimationFrame(update)
     resize()
     return () => {
       cancelAnimationFrame(animateId)
-      document.removeEventListener('visibilitychange', handleVisibility)
-      window.removeEventListener('resize', resize)
-      if (ctn && gl.canvas.parentNode === ctn) ctn.removeChild(gl.canvas)
-      gl.getExtension('WEBGL_lose_context')?.loseContext()
+      document.removeEventListener("visibilitychange", handleVisibility)
+      window.removeEventListener("resize", resize)
+      if (
+        ctn &&
+        gl.canvas.parentNode ===
+          ctn
+      )
+        ctn.removeChild(gl.canvas)
+      gl.getExtension("WEBGL_lose_context")?.loseContext()
     }
   }, [])
 

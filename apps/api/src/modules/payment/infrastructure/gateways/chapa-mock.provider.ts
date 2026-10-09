@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { providerRefFor, simulateProviderLatency } from './provider-ref';
 import { OtpService } from '../../application/otp.service';
 import { MockSmsService } from '../mock-sms.service';
+import { SmsService } from '../sms.service';
 import { BankMockProvider } from './bank-mock.provider';
 import { PrismaService } from '../../../../prisma/prisma.service';
 
@@ -31,6 +32,7 @@ export class ChapaMockProvider {
     private readonly bank: BankMockProvider,
     private readonly otpService: OtpService,
     private readonly sms: MockSmsService,
+    private readonly realSms: SmsService,
     private readonly db: PrismaService,
   ) {}
 
@@ -68,6 +70,10 @@ export class ChapaMockProvider {
       'Expires in 5 minutes.',
     ].join('\n');
 
+    // Send SMS via configured provider (SMSEthiopia in production, mock in dev)
+    await this.realSms.send(phone, message);
+
+    // Keep mock inbox updated so dev sandbox UIs still show the message
     this.sms.send(phone, message);
 
     this.logger.log({

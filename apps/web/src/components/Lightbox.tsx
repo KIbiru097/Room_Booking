@@ -1,10 +1,15 @@
-'use client'
+"use client"
 
-import { useEffect, useState, useCallback } from 'react'
-import Image from 'next/image'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useLanguage } from '@/lib/i18n'
+// Keyboard navigation
+
+// Lock body scroll
+/* Top bar */ /* Main image */ /* Prev/next buttons */ /* Thumbnail strip */
+
+import { useEffect, useState, useCallback } from "react"
+import Image from "next/image"
+import { motion, AnimatePresence } from "framer-motion"
+import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { useLanguage } from "@/lib/i18n"
 
 interface LightboxProps {
   images: string[]
@@ -13,43 +18,60 @@ interface LightboxProps {
   onClose: () => void
 }
 
-export default function Lightbox({ images, startIndex = 0, alt, onClose }: LightboxProps) {
+export default function Lightbox({
+  images,
+  startIndex = 0,
+  alt,
+  onClose,
+}: LightboxProps) {
   const { t } = useLanguage()
-  const altText = alt ?? t('common', 'hotelImageAlt')
+  const altText =
+    alt ??
+    t("common", "hotelImageAlt")
   const [current, setCurrent] = useState(startIndex)
   const [direction, setDirection] = useState(0)
 
   const prev = useCallback(() => {
     setDirection(-1)
-    setCurrent(c => (c - 1 + images.length) % images.length)
+    setCurrent((c) => (c - 1 + images.length) % images.length)
   }, [images.length])
 
   const next = useCallback(() => {
     setDirection(1)
-    setCurrent(c => (c + 1) % images.length)
+    setCurrent((c) => (c + 1) % images.length)
   }, [images.length])
-
-  // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prev()
-      else if (e.key === 'ArrowRight') next()
-      else if (e.key === 'Escape') onClose()
+      if (
+        e.key ===
+        "ArrowLeft"
+      )
+        prev()
+      else if (
+        e.key ===
+        "ArrowRight"
+      )
+        next()
+      else if (
+        e.key ===
+        "Escape"
+      )
+        onClose()
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
   }, [prev, next, onClose])
-
-  // Lock body scroll
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = ""
+    }
   }, [])
 
   const variants = {
-    enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
+    enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? '-100%' : '100%', opacity: 0 }),
+    exit: (dir: number) => ({ x: dir > 0 ? "-100%" : "100%", opacity: 0 }),
   }
 
   return (
@@ -62,24 +84,27 @@ export default function Lightbox({ images, startIndex = 0, alt, onClose }: Light
         className="fixed inset-0 z-[9999] bg-black/95 flex flex-col"
         onClick={onClose}
       >
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-4 z-10" onClick={e => e.stopPropagation()}>
+        {}
+        <div
+          className="flex items-center justify-between px-6 py-4 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
           <span className="text-white/60 text-sm font-medium">
             {current + 1} / {images.length}
           </span>
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-            aria-label={t('common', 'closeLightbox')}
+            aria-label={t("common", "closeLightbox")}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Main image */}
+        {}
         <div
           className="flex-1 relative flex items-center justify-center overflow-hidden"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <AnimatePresence custom={direction} mode="popLayout">
             <motion.img
@@ -89,28 +114,31 @@ export default function Lightbox({ images, startIndex = 0, alt, onClose }: Light
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               src={images[current]}
-              alt={t('common', 'imageAltWithNumber', { alt: altText, number: current + 1 })}
+              alt={t("common", "imageAltWithNumber", {
+                alt: altText,
+                number: current + 1,
+              })}
               className="max-h-[75vh] max-w-[90vw] object-contain rounded-lg select-none"
               draggable={false}
             />
           </AnimatePresence>
 
-          {/* Prev/next buttons */}
+          {}
           {images.length > 1 && (
             <>
               <button
                 onClick={prev}
                 className="absolute left-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-sm transition-all cursor-pointer"
-                aria-label={t('common', 'previousImage')}
+                aria-label={t("common", "previousImage")}
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 onClick={next}
                 className="absolute right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-sm transition-all cursor-pointer"
-                aria-label={t('common', 'nextImage')}
+                aria-label={t("common", "nextImage")}
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
@@ -118,23 +146,32 @@ export default function Lightbox({ images, startIndex = 0, alt, onClose }: Light
           )}
         </div>
 
-        {/* Thumbnail strip */}
+        {}
         {images.length > 1 && (
           <div
             className="flex items-center justify-center gap-2 py-4 px-6 overflow-x-auto"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             {images.map((src, i) => (
               <button
                 key={i}
-                onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i) }}
+                onClick={() => {
+                  setDirection(i > current ? 1 : -1)
+                  setCurrent(i)
+                }}
                 className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden transition-all cursor-pointer ${
                   i === current
-                    ? 'ring-2 ring-[#A16207] ring-offset-1 ring-offset-black'
-                    : 'opacity-50 hover:opacity-80'
+                    ? "ring-2 ring-[#A16207] ring-offset-1 ring-offset-black"
+                    : "opacity-50 hover:opacity-80"
                 }`}
               >
-                <Image src={src} alt={t('common', 'thumbnailAlt', { number: i + 1 })} width={56} height={40} className="h-full w-full object-cover" />
+                <Image
+                  src={src}
+                  alt={t("common", "thumbnailAlt", { number: i + 1 })}
+                  width={56}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
               </button>
             ))}
           </div>

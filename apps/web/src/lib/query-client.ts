@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient } from "@tanstack/react-query"
 
 export function makeQueryClient(): QueryClient {
   return new QueryClient({
@@ -27,7 +27,7 @@ export function makeQueryClient(): QueryClient {
 let browserQueryClient: QueryClient | undefined = undefined
 
 export function getQueryClient(): QueryClient {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     // Server: always make a new query client
     return makeQueryClient()
   } else {

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../../common/services/audit.service';
+import { ResourceScopeHelper } from '../../common/guards/resource-scope.helper';
 import { PaymentGatewayRegistry } from './infrastructure/gateway-registry';
 import {
   CashGateway,
@@ -13,6 +14,7 @@ import {
   ChapaMockProvider,
   BankMockProvider,
   MockSmsService,
+  SmsService,
 } from './infrastructure/gateways';
 import { ChapaService } from './infrastructure/chapa/chapa.service';
 import { OtpService } from './application/otp.service';
@@ -28,8 +30,10 @@ import { FraudModule } from '../fraud/fraud.module';
   providers: [
     PaymentService,
     AuditService,
+    ResourceScopeHelper,
     OtpService,
     MockSmsService,
+    SmsService,
     ChapaService,
     ChapaPaymentGateway,
     MockPaymentGateway,
@@ -81,6 +85,7 @@ import { FraudModule } from '../fraud/fraud.module';
     PaymentService,
     OtpService,
     MockSmsService,
+    SmsService,
     ChapaService,
     ChapaPaymentGateway,
     MockPaymentGateway,

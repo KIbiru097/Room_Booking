@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { HotelStatus, PlaceCategory, PlaceStatus } from '../../../generated/prisma/client';
+import {
+  HotelStatus,
+  PlaceCategory,
+  PlaceStatus,
+} from '../../../generated/prisma/client';
 import {
   CreatePlaceDto,
   EmergencyContactsQueryDto,
@@ -34,11 +38,17 @@ export class DiscoverService {
 
   /** Destination-first discovery. Only cities with published, attributed content are public. */
   async getDestinations(limit = 50) {
-    const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.trunc(limit), 1), 100) : 50;
+    const safeLimit = Number.isFinite(limit)
+      ? Math.min(Math.max(Math.trunc(limit), 1), 100)
+      : 50;
     const cities = await this.prisma.city.findMany({
       where: {
         OR: [
-          { places: { some: { status: PlaceStatus.PUBLISHED, sourceId: { not: null } } } },
+          {
+            places: {
+              some: { status: PlaceStatus.PUBLISHED, sourceId: { not: null } },
+            },
+          },
           { hotels: { some: { status: HotelStatus.ACTIVE } } },
         ],
       },
@@ -48,11 +58,13 @@ export class DiscoverService {
           where: { status: PlaceStatus.PUBLISHED, sourceId: { not: null } },
           orderBy: [{ rating: 'desc' }, { lastVerifiedAt: 'desc' }],
           take: 1,
-          select: { name: true, amharicName: true, description: true, images: true },
+          select: { images: true },
         },
         _count: {
           select: {
-            places: { where: { status: PlaceStatus.PUBLISHED, sourceId: { not: null } } },
+            places: {
+              where: { status: PlaceStatus.PUBLISHED, sourceId: { not: null } },
+            },
             hotels: { where: { status: HotelStatus.ACTIVE } },
           },
         },
@@ -61,16 +73,27 @@ export class DiscoverService {
       take: safeLimit,
     });
 
-    return cities.map((city) => ({
-      id: city.id,
-      name: city.name,
-      country: city.country,
-      description: city.places[0]?.description ?? `Explore verified stays and experiences in ${city.name}.`,
-      amharicName: city.places[0]?.amharicName ?? null,
-      heroImage: Array.isArray(city.places[0]?.images) && typeof city.places[0]?.images[0] === 'string' ? city.places[0]?.images[0] : null,
-      placeCount: city._count.places,
-      hotelCount: city._count.hotels,
-    }));
+    return cities.map((city) => {
+      const placeCount = city._count.places;
+      const hotelCount = city._count.hotels;
+      return {
+        id: city.id,
+        name: city.name,
+        country: city.country,
+        // City-level copy only — never reuse a place's text as the city's description.
+        description: `${city.name}, ${city.country.name} — ${placeCount} verified ${
+          placeCount === 1 ? 'place' : 'places'
+        } and ${hotelCount} active ${hotelCount === 1 ? 'hotel' : 'hotels'}.`,
+        amharicName: null,
+        heroImage:
+          Array.isArray(city.places[0]?.images) &&
+          typeof city.places[0]?.images[0] === 'string'
+            ? city.places[0]?.images[0]
+            : null,
+        placeCount,
+        hotelCount,
+      };
+    });
   }
 
   async getDestination(cityId: string) {
@@ -108,6 +131,162 @@ export class DiscoverService {
         images: hotel.images.map((image) => image.url),
       })),
     };
+  }
+
+  /**
+   * Return the source-controlled history payload for a city. Historical copy
+   * is deliberately not kept in the web bundle: an unapproved or missing
+   * record produces an empty state instead of guessed facts.
+   */
+  async getHistory(cityId: string) {
+    const city = await this.prisma.city.findUnique({
+      where: { id: cityId },
+      include: { country: { select: { id: true, name: true, code: true } } },
+    });
+    if (!city) throw new NotFoundException('Destination not found');
+
+    const history = await this.prisma.cityHistory.findFirst({
+      where: { cityId, sourceId: { not: null } },
+      include: { source: true },
+    });
+
+    return {
+      city: { id: city.id, name: city.name, country: city.country },
+      tagline: history?.tagline ?? null,
+      overview: history?.overview ?? null,
+      timeline: Array.isArray(history?.timeline) ? history.timeline : [],
+      stories: Array.isArray(history?.stories) ? history.stories : [],
+      culture: Array.isArray(history?.culture) ? history.culture : [],
+      source: history?.source ?? null,
+      verifiedAt: history?.verifiedAt ?? null,
+    };
+  }
+
+  async getHistoryTimeline(cityId: string) {
+    const history = await this.getHistory(cityId);
+    return {
+      city: history.city,
+      timeline: history.timeline,
+      source: history.source,
+      verifiedAt: history.verifiedAt,
+    };
+  }
+
+  /** Nearby heritage is hotel-centred and only returns published attributed places. */
+  async getNearbyHeritage(hotelId: string, radiusKm = 15, limit = 30) {
+    const hotel = await this.prisma.hotel.findFirst({
+      where: {
+        id: hotelId,
+        status: HotelStatus.ACTIVE,
+        lat: { not: null },
+        lng: { not: null },
+      },
+      select: { id: true, name: true, address: true, lat: true, lng: true },
+    });
+    if (!hotel || hotel.lat == null || hotel.lng == null) {
+      throw new NotFoundException('Active hotel with location not found');
+    }
+
+    const safeRadius = Math.min(
+      Math.max(Number.isFinite(radiusKm) ? radiusKm : 15, 1),
+      50,
+    );
+    const latDelta = safeRadius / 111;
+    const lngDelta =
+      safeRadius / (111 * Math.cos(hotel.lat * (Math.PI / 180)) || 1);
+    const places = await this.prisma.place.findMany({
+      where: {
+        status: PlaceStatus.PUBLISHED,
+        sourceId: { not: null },
+        category: { in: [PlaceCategory.HERITAGE, PlaceCategory.MUSEUM] },
+        lat: { gte: hotel.lat - latDelta, lte: hotel.lat + latDelta },
+        lng: { gte: hotel.lng - lngDelta, lte: hotel.lng + lngDelta },
+      },
+      include: { source: true, city: true },
+      take: 200,
+    });
+
+    const data = places
+      .map((place) => ({
+        ...place,
+        distanceKm: haversineDistanceKm(
+          hotel.lat!,
+          hotel.lng!,
+          place.lat,
+          place.lng,
+        ),
+      }))
+      .filter((place) => place.distanceKm <= safeRadius)
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(
+        0,
+        Math.min(Math.max(Number.isFinite(limit) ? limit : 30, 1), 100),
+      );
+
+    return { hotel, radiusKm: safeRadius, total: data.length, data };
+  }
+
+  /** Reverse heritage-to-hotel discovery, scoped to active hotels. */
+  async getNearbyHotels(placeId: string, radiusKm = 15, limit = 30) {
+    const place = await this.prisma.place.findFirst({
+      where: {
+        id: placeId,
+        status: PlaceStatus.PUBLISHED,
+        sourceId: { not: null },
+      },
+      select: { id: true, name: true, lat: true, lng: true },
+    });
+    if (!place) throw new NotFoundException('Place not found');
+
+    const safeRadius = Math.min(
+      Math.max(Number.isFinite(radiusKm) ? radiusKm : 15, 1),
+      50,
+    );
+    const latDelta = safeRadius / 111;
+    const lngDelta =
+      safeRadius / (111 * Math.cos(place.lat * (Math.PI / 180)) || 1);
+    const hotels = await this.prisma.hotel.findMany({
+      where: {
+        status: HotelStatus.ACTIVE,
+        lat: {
+          not: null,
+          gte: place.lat - latDelta,
+          lte: place.lat + latDelta,
+        },
+        lng: {
+          not: null,
+          gte: place.lng - lngDelta,
+          lte: place.lng + lngDelta,
+        },
+      },
+      include: { images: { where: { isPrimary: true }, take: 1 } },
+      take: 200,
+    });
+    const data = hotels
+      .filter((hotel) => hotel.lat != null && hotel.lng != null)
+      .map((hotel) => ({
+        id: hotel.id,
+        name: hotel.name,
+        address: hotel.address,
+        lat: hotel.lat,
+        lng: hotel.lng,
+        starRating: hotel.starRating,
+        images: hotel.images.map((image) => image.url),
+        distanceKm: haversineDistanceKm(
+          place.lat,
+          place.lng,
+          hotel.lat!,
+          hotel.lng!,
+        ),
+      }))
+      .filter((hotel) => hotel.distanceKm <= safeRadius)
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(
+        0,
+        Math.min(Math.max(Number.isFinite(limit) ? limit : 30, 1), 100),
+      );
+
+    return { place, radiusKm: safeRadius, total: data.length, data };
   }
 
   /**
@@ -166,7 +345,10 @@ export class DiscoverService {
    * Get verified heritage, historical sites, and museums.
    */
   async getHeritage(query: HeritageQueryDto) {
-    const { cityId, limit = 20 } = query;
+    const { cityId } = query;
+    const limit = Number.isFinite(query.limit)
+      ? Math.min(Math.max(Math.trunc(query.limit), 1), 50)
+      : 20;
 
     const places = await this.prisma.place.findMany({
       where: {

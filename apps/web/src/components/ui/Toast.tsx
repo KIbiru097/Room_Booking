@@ -1,11 +1,11 @@
-'use client'
+"use client" // Keep max 5 toasts
 
-import * as React from 'react'
-import { create } from 'zustand'
-import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react'
-import { useLanguage } from '@/lib/i18n'
+import * as React from "react"
+import { create } from "zustand"
+import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from "lucide-react"
+import { useLanguage } from "@/lib/i18n"
 
-export type ToastType = 'success' | 'warning' | 'error' | 'info'
+export type ToastType = "success" | "warning" | "error" | "info"
 
 export interface ToastItem {
   id: string
@@ -17,7 +17,7 @@ export interface ToastItem {
 
 interface ToastStore {
   toasts: ToastItem[]
-  addToast: (toast: Omit<ToastItem, 'id'>) => void
+  addToast: (toast: Omit<ToastItem, "id">) => void
   removeToast: (id: string) => void
 }
 
@@ -28,7 +28,7 @@ export const useToastStore = create<ToastStore>((set) => ({
     const newToast: ToastItem = { ...toast, id }
 
     set((state) => ({
-      toasts: [...state.toasts.slice(-4), newToast], // Keep max 5 toasts
+      toasts: [...state.toasts.slice(-4), newToast],
     }))
 
     const duration = toast.duration ?? 4000
@@ -44,13 +44,13 @@ export const useToastStore = create<ToastStore>((set) => ({
 
 export const toast = {
   success: (title: string, message?: string) =>
-    useToastStore.getState().addToast({ type: 'success', title, message }),
+    useToastStore.getState().addToast({ type: "success", title, message }),
   warning: (title: string, message?: string) =>
-    useToastStore.getState().addToast({ type: 'warning', title, message }),
+    useToastStore.getState().addToast({ type: "warning", title, message }),
   error: (title: string, message?: string) =>
-    useToastStore.getState().addToast({ type: 'error', title, message }),
+    useToastStore.getState().addToast({ type: "error", title, message }),
   info: (title: string, message?: string) =>
-    useToastStore.getState().addToast({ type: 'info', title, message }),
+    useToastStore.getState().addToast({ type: "info", title, message }),
 }
 
 export function ToastContainer() {
@@ -74,17 +74,17 @@ export function ToastContainer() {
         }[item.type]
 
         const borderStyles = {
-          success: 'border-emerald-300 bg-emerald-50/95 text-emerald-950',
-          warning: 'border-amber-300 bg-amber-50/95 text-amber-950',
-          error: 'border-red-300 bg-red-50/95 text-red-950',
-          info: 'border-blue-300 bg-blue-50/95 text-blue-950',
+          success: "border-emerald-300 bg-emerald-50/95 text-emerald-950",
+          warning: "border-amber-300 bg-amber-50/95 text-amber-950",
+          error: "border-red-300 bg-red-50/95 text-red-950",
+          info: "border-blue-300 bg-blue-50/95 text-blue-950",
         }[item.type]
 
         const iconColors = {
-          success: 'text-emerald-600',
-          warning: 'text-amber-600',
-          error: 'text-red-600',
-          info: 'text-blue-600',
+          success: "text-emerald-600",
+          warning: "text-amber-600",
+          error: "text-red-600",
+          info: "text-blue-600",
         }[item.type]
 
         return (
@@ -105,7 +105,7 @@ export function ToastContainer() {
             <button
               onClick={() => removeToast(item.id)}
               className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
-              aria-label={t('common', 'dismissToast')}
+              aria-label={t("common", "dismissToast")}
             >
               <X className="w-4 h-4" />
             </button>

@@ -182,4 +182,5 @@ export * from './staff';
 export * from './contact';
 export * from './ai';
 export * from './discover';
+export * from './transport';
 //# sourceMappingURL=index.d.ts.map

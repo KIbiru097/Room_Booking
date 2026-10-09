@@ -121,6 +121,8 @@ model User {
   flaggedAt                  DateTime?
   hotels                     Hotel[]                  @relation("HotelManager")
   staffHotels                StaffHotel[]
+  hotelRoleAssignments       StaffRoleAssignment[]    @relation("HotelRoleStaff")
+  assignedHotelRoles         StaffRoleAssignment[]    @relation("HotelRoleAssigner")
   sessions                   UserSession[]
   bookings                   Booking[]
   reviews                    Review[]
@@ -140,6 +142,9 @@ model User {
   sentContactMessages        ContactMessage[]         @relation("SentContactMessages")
   aiConversations            AiConversation[]
   trips                      Trip[]
+  transportProviders         TransportProvider[]
+  transportBookings          TransportBooking[]
+  transportPayments          TransportPayment[]
 }
 
 model Country {
@@ -150,19 +155,21 @@ model Country {
 }
 
 model City {
-  id        String  @id @default(cuid())
+  id        String       @id @default(cuid())
   name      String
   countryId String
-  country   Country @relation(fields: [countryId], references: [id])
+  country   Country      @relation(fields: [countryId], references: [id])
   hotels    Hotel[]
   places    Place[]
+  history   CityHistory?
+  transportProviders TransportProvider[]
 
   @@unique([name, countryId])
 }
 
 model Hotel {
   id                String                @id @default(cuid())
-  managerId         String?
+  managerId         String?               @unique
   manager           User?                 @relation("HotelManager", fields: [managerId], references: [id])
   cityId            String
   city              City                  @relation(fields: [cityId], references: [id])
@@ -183,13 +190,19 @@ model Hotel {
   bookings          Booking[]
   reviews           Review[]
   favorites         Favorite[]
+  coupons           Coupon[]
   staffAssignments  StaffHotel[]
+  departments       Department[]
+  hotelRoles        HotelRole[]
+  roleAssignments   StaffRoleAssignment[]
   statusHistory     HotelStatusHistory[]
   contactThreads    ContactThread[]       @relation("HotelContactThreads")
   aiConversations   AiConversation[]
   aiDocuments       AiKnowledgeDocument[]
   emergencyContacts EmergencyContact[]
   trips             Trip[]
+  dashboardLayouts  DashboardLayout[]
+  navigationItems   NavigationItem[]
 }
 
 model HotelImage {
@@ -316,6 +329,7 @@ model Booking {
   paymentAttempts PaymentAttempt[]
   trips           Trip[]
   tripItems       TripItem[]
+  transportBookings TransportBooking[]
 
   @@index([userId])
   @@index([hotelId])
@@ -479,6 +493,8 @@ model Favorite {
 
 model Coupon {
   id               String       @id @default(cuid())
+  hotelId          String?
+  hotel            Hotel?       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
   code             String       @unique
   discountType     DiscountType @default(PERCENTAGE)
   value            Decimal      @db.Decimal(10, 2)
@@ -488,6 +504,8 @@ model Coupon {
   timesUsed        Int          @default(0)
   isActive         Boolean      @default(true)
   minBookingAmount Decimal?     @db.Decimal(10, 2)
+
+  @@index([hotelId, isActive])
 }
 
 model Notification {
@@ -565,6 +583,143 @@ model StaffHotel {
 
   @@id([staffId, hotelId])
   @@index([hotelId])
+}
+
+// Hotel-scoped permissions. The global User.role remains the coarse portal
+// role; these models define granular operational access inside one hotel.
+model Department {
+  id          String     @id @default(cuid())
+  hotelId     String
+  hotel       Hotel      @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  color       String?
+  icon        String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  roles       HotelRole[]
+  navigationItems NavigationItem[]
+
+  @@unique([hotelId, name])
+  @@index([hotelId, isActive])
+}
+
+model HotelRole {
+  id            String                 @id @default(cuid())
+  hotelId       String
+  hotel         Hotel                  @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  departmentId  String?
+  department    Department?            @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  isSystem      Boolean                @default(false)
+  isActive      Boolean                @default(true)
+  createdBy     String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  permissions   HotelRolePermission[]
+  assignments   StaffRoleAssignment[]
+
+  @@unique([hotelId, name])
+  @@index([hotelId, isActive])
+  @@index([departmentId])
+}
+
+model Permission {
+  id          String                 @id @default(cuid())
+  key         String                 @unique
+  module      String
+  action      String
+  description String?
+  isSystem    Boolean                @default(false)
+  createdAt   DateTime               @default(now())
+  roles       HotelRolePermission[]
+}
+
+model HotelRolePermission {
+  roleId       String
+  role         HotelRole   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model StaffRoleAssignment {
+  id          String    @id @default(cuid())
+  staffId     String
+  staff       User      @relation("HotelRoleStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  roleId      String
+  role        HotelRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  hotelId     String
+  hotel       Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  startAt     DateTime  @default(now())
+  endAt       DateTime?
+  assignedBy  String
+  assigner    User      @relation("HotelRoleAssigner", fields: [assignedBy], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([staffId, roleId, hotelId])
+  @@index([staffId, hotelId, endAt])
+  @@index([roleId])
+  @@index([hotelId])
+}
+
+model DashboardLayout {
+  id        String            @id @default(cuid())
+  hotelId   String
+  hotel     Hotel             @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  userId    String?
+  name      String
+  layout    String            @default("standard")
+  isDefault Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  widgets   DashboardWidget[]
+
+  @@unique([hotelId, name])
+  @@index([hotelId, isDefault])
+}
+
+model DashboardWidget {
+  id        String          @id @default(cuid())
+  layoutId  String
+  layout    DashboardLayout @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+  key       String
+  title     String?
+  config    Json?
+  position  Int             @default(0)
+  isVisible Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([layoutId, key])
+  @@index([layoutId, position])
+}
+
+model NavigationItem {
+  id                 String      @id @default(cuid())
+  hotelId            String
+  hotel              Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  label              String
+  icon               String?
+  route              String
+  position           Int         @default(0)
+  enabled            Boolean     @default(true)
+  requiredPermission String?
+  departmentId       String?
+  department         Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  isSystem           Boolean     @default(false)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@unique([hotelId, route])
+  @@index([hotelId, position])
+  @@index([departmentId])
 }
 
 model Dispute {
@@ -821,6 +976,7 @@ enum PlaceStatus {
   DRAFT
   PENDING_REVIEW
   PUBLISHED
+  REJECTED
   ARCHIVED
 }
 
@@ -834,6 +990,28 @@ model Source {
   updatedAt         DateTime           @updatedAt
   places            Place[]
   emergencyContacts EmergencyContact[]
+  cityHistories     CityHistory[]
+}
+
+/// Curated, source-attributed history for a destination. The JSON fields are
+/// intentionally API-shaped so the web client never owns historical facts.
+model CityHistory {
+  id         String    @id @default(cuid())
+  cityId     String    @unique
+  city       City      @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  tagline    String?
+  overview   String?   @db.Text
+  timeline   Json
+  stories    Json
+  culture    Json
+  sourceId   String?
+  source     Source?   @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([sourceId])
+  @@index([verifiedAt])
 }
 
 model Place {
@@ -873,6 +1051,7 @@ enum TripItemType {
   PLACE
   BOOKING
   CUSTOM
+  TRANSPORT
 }
 
 enum TripItemStatus {
@@ -902,6 +1081,7 @@ model Trip {
   updatedAt DateTime   @updatedAt
   deletedAt DateTime?
   items     TripItem[]
+  transportBookings TransportBooking[]
 
   @@index([userId, startDate])
 }
@@ -950,5 +1130,235 @@ model EmergencyContact {
   @@index([city])
   @@index([hotelId])
   @@index([kind])
+  @@index([status])
+}
+
+// ─── Transportation Marketplace ───────────────────────────────────────────────
+
+enum TransportProviderStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum TransportVerificationStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  REJECTED
+}
+
+enum VehicleType {
+  SEDAN
+  SUV
+  MINIVAN
+  MINIBUS
+  BUS
+  OTHER
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  UNAVAILABLE
+  MAINTENANCE
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum TransportServiceType {
+  AIRPORT_PICKUP
+  AIRPORT_DROP_OFF
+  HOTEL_TRANSFER
+  PRIVATE_DRIVER
+  CAR_RENTAL
+}
+
+enum TransportBookingStatus {
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model TransportProvider {
+  id                  String                     @id @default(cuid())
+  userId              String
+  user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName        String
+  legalName           String?
+  phone               String
+  email               String
+  description         String?                    @db.Text
+  status              TransportProviderStatus    @default(DRAFT)
+  verificationStatus  TransportVerificationStatus @default(PENDING)
+  verificationNotes   String?                    @db.Text
+  cityId              String?
+  city                City?                      @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  deletedAt           DateTime?
+
+  vehicles  TransportVehicle[]
+  drivers   TransportDriver[]
+  services  TransportService[]
+  bookings  TransportBooking[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([cityId])
+}
+
+model TransportVehicle {
+  id                String        @id @default(cuid())
+  providerId        String
+  provider          TransportProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  vehicleType       VehicleType
+  make              String?
+  model             String?
+  year              Int?
+  plateNumber       String
+  color             String?
+  passengerCapacity Int
+  luggageCapacity   Int           @default(0)
+  status            VehicleStatus @default(AVAILABLE)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  bookings TransportBooking[]
+
+  @@index([providerId])
+  @@index([status])
+}
+
+model TransportDriver {
+  id                String       @id @default(cuid())
+  providerId        String
+  provider          TransportProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name              String
+  phone             String
+  licenseNumber     String?
+  status            DriverStatus @default(ACTIVE)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  bookings TransportBooking[]
+
+  @@index([providerId])
+  @@index([status])
+}
+
+model TransportService {
+  id                    String               @id @default(cuid())
+  providerId            String
+  provider              TransportProvider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name                  String
+  serviceType           TransportServiceType
+  description           String?              @db.Text
+  fixedPrice            Decimal              @db.Decimal(10, 2)
+  currency              String               @default("ETB")
+  passengerLimit        Int
+  luggageLimit          Int?
+  durationMinutes       Int?
+  advanceBookingMinutes Int                  @default(60)
+  // Car rental specific
+  dailyRate             Decimal?             @db.Decimal(10, 2)
+  depositAmount         Decimal?             @db.Decimal(10, 2)
+  mileagePolicyKm       Int?
+  isActive              Boolean              @default(true)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  bookings TransportBooking[]
+
+  @@index([providerId])
+  @@index([serviceType])
+  @@index([isActive])
+}
+
+model TransportBooking {
+  id                 String                 @id @default(cuid())
+  bookingRef         String                 @unique
+  userId             String
+  user               User                   @relation(fields: [userId], references: [id])
+  tripId             String?
+  trip               Trip?                  @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  hotelBookingId     String?
+  hotelBooking       Booking?               @relation(fields: [hotelBookingId], references: [id], onDelete: SetNull)
+  serviceId          String
+  service            TransportService       @relation(fields: [serviceId], references: [id])
+  providerId         String
+  provider           TransportProvider      @relation(fields: [providerId], references: [id])
+  vehicleId          String?
+  vehicle            TransportVehicle?      @relation(fields: [vehicleId], references: [id])
+  driverId           String?
+  driver             TransportDriver?       @relation(fields: [driverId], references: [id])
+  pickupAt           DateTime
+  pickupLocation     String
+  pickupLatitude     Decimal?               @db.Decimal(9, 6)
+  pickupLongitude    Decimal?               @db.Decimal(9, 6)
+  dropoffLocation    String
+  dropoffLatitude    Decimal?               @db.Decimal(9, 6)
+  dropoffLongitude   Decimal?               @db.Decimal(9, 6)
+  passengers         Int
+  luggageCount       Int?
+  customerNotes      String?                @db.Text
+  priceAmount        Decimal                @db.Decimal(10, 2)
+  currency           String                 @default("ETB")
+  paymentStatus      PaymentStatus          @default(PENDING)
+  status             TransportBookingStatus @default(REQUESTED)
+  cancellationReason String?
+  commissionRate     Decimal                @db.Decimal(5, 4) @default(0.1500)
+  commissionAmount   Decimal?               @db.Decimal(10, 2)
+  partnerNetAmount   Decimal?               @db.Decimal(10, 2)
+  // Car rental dates
+  rentalStartDate    DateTime?
+  rentalEndDate      DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  deletedAt          DateTime?
+
+  payment TransportPayment?
+
+  @@index([userId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([tripId])
+  @@index([hotelBookingId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([pickupAt])
+}
+
+model TransportPayment {
+  id                 String        @id @default(cuid())
+  transportBookingId String        @unique
+  transportBooking   TransportBooking @relation(fields: [transportBookingId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User          @relation(fields: [userId], references: [id])
+  provider           String        @default("CHAPA")
+  amount             Decimal       @db.Decimal(10, 2)
+  currency           String        @default("ETB")
+  status             PaymentStatus @default(PENDING)
+  txRef              String?       @unique
+  chapaRef           String?
+  failureReason      String?
+  paidAt             DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([userId])
   @@index([status])
 }

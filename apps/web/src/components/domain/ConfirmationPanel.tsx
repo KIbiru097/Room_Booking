@@ -1,12 +1,12 @@
-'use client'
+"use client" /* Animated Success Badge */ /* Booking Reference Hero Card */ /* Itemized summary details */ /* Action Buttons */
 
-import { useState } from 'react'
-import Link from 'next/link'
-import type { Booking, Hotel } from '@/lib/types'
-import { formatEthiopianBirr } from '@/lib/currency'
-import { StatusBadge } from '@/components/ui/StatusBadge'
-import { bookingService } from '@/services/booking.service'
-import { useLanguage } from '@/lib/i18n'
+import { useState } from "react"
+import Link from "next/link"
+import type { Booking, Hotel } from "@/lib/types"
+import { formatEthiopianBirr } from "@/lib/currency"
+import { StatusBadge } from "@/components/ui/StatusBadge"
+import { bookingService } from "@/services/booking.service"
+import { useLanguage } from "@/lib/i18n"
 import {
   CheckCircle2,
   Copy,
@@ -16,10 +16,9 @@ import {
   MapPin,
   Bed,
   CreditCard,
-  User,
   ArrowRight,
   Loader2,
-} from 'lucide-react'
+} from "lucide-react"
 
 interface ConfirmationPanelProps {
   booking: Booking
@@ -31,10 +30,10 @@ interface ConfirmationPanelProps {
 function formatDate(val: string) {
   try {
     return new Intl.DateTimeFormat(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     }).format(new Date(`${val}T00:00:00`))
   } catch {
     return val
@@ -45,7 +44,7 @@ export function ConfirmationPanel({
   booking,
   hotel,
   roomType,
-  paymentMethod = 'CREDIT_CARD',
+  paymentMethod = "CREDIT_CARD",
 }: ConfirmationPanelProps) {
   const { t } = useLanguage()
   const [copied, setCopied] = useState(false)
@@ -65,7 +64,7 @@ export function ConfirmationPanel({
       setDownloading(true)
       await bookingService.downloadInvoice(booking.id)
     } catch {
-      window.open(bookingService.getInvoiceDownloadUrl(booking.id), '_blank')
+      window.open(bookingService.getInvoiceDownloadUrl(booking.id), "_blank")
     } finally {
       setDownloading(false)
     }
@@ -73,7 +72,7 @@ export function ConfirmationPanel({
 
   return (
     <div className="max-w-2xl mx-auto text-center py-6 animate-in fade-in duration-500">
-      {/* Animated Success Badge */}
+      {}
       <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/10">
         <CheckCircle2 className="w-10 h-10 text-emerald-600" />
       </div>
@@ -82,21 +81,21 @@ export function ConfirmationPanel({
         <StatusBadge status={booking.status} />
       </div>
 
-      <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F2942] mb-2 tracking-tight">
-        {t('hotel', 'reservationConfirmed')}
+      <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#0b1528] mb-2 tracking-tight">
+        {t("hotel", "reservationConfirmed")}
       </h1>
       <p className="text-slate-600 text-sm max-w-md mx-auto mb-8">
-        {t('hotel', 'confirmationSubtitle', { name: hotel?.name || 'LuxStay' })}
+        {t("hotel", "confirmationSubtitle", { name: hotel?.name || "LuxStay" })}
       </p>
 
-      {/* Booking Reference Hero Card */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden text-left mb-8">
         <div className="bg-slate-900 text-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-0.5">
-              {t('hotel', 'bookingReference')}
+              {t("hotel", "bookingReference")}
             </div>
-            <div className="font-mono text-xl font-bold text-[#D4AF37] tracking-wider">
+            <div className="font-mono text-xl font-bold text-[#e4bd55] tracking-wider">
               {booking.id}
             </div>
           </div>
@@ -107,70 +106,88 @@ export function ConfirmationPanel({
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" /> {t('hotel', 'copiedReference')}
+                <Check className="w-3.5 h-3.5 text-emerald-400" />{" "}
+                {t("hotel", "copiedReference")}
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5" /> {t('hotel', 'copyReference')}
+                <Copy className="w-3.5 h-3.5" /> {t("hotel", "copyReference")}
               </>
             )}
           </button>
         </div>
 
-        {/* Itemized summary details */}
+        {}
         <div className="p-6 space-y-4 divide-y divide-slate-100 text-sm">
           <div className="flex items-start justify-between gap-4 pt-1">
             <span className="flex items-center gap-2 text-slate-500 shrink-0">
-              <MapPin className="w-4 h-4 text-[#D4AF37]" /> {t('hotel', 'hotelProperty')}
+              <MapPin className="w-4 h-4 text-[#e4bd55]" />{" "}
+              {t("hotel", "hotelProperty")}
             </span>
             <div className="text-right">
-              <div className="font-semibold text-slate-900">{hotel?.name || t('hotel', 'luxuryHotel')}</div>
-              <div className="text-xs text-slate-500">{hotel?.address || ''}</div>
+              <div className="font-semibold text-slate-900">
+                {hotel?.name || t("hotel", "luxuryHotel")}
+              </div>
+              <div className="text-xs text-slate-500">
+                {hotel?.address || ""}
+              </div>
             </div>
           </div>
 
           <div className="flex items-center justify-between gap-4 pt-4">
             <span className="flex items-center gap-2 text-slate-500 shrink-0">
-              <Bed className="w-4 h-4 text-[#D4AF37]" /> {t('hotel', 'reservedSuite')}
+              <Bed className="w-4 h-4 text-[#e4bd55]" />{" "}
+              {t("hotel", "reservedSuite")}
             </span>
             <span className="font-medium text-slate-900 capitalize">
-              {roomType ? roomType.replace(/_/g, ' ') : t('hotel', 'luxurySuite')}
+              {roomType
+                ? roomType.replace(/_/g, " ")
+                : t("hotel", "luxurySuite")}
             </span>
           </div>
 
           <div className="flex items-center justify-between gap-4 pt-4">
             <span className="flex items-center gap-2 text-slate-500 shrink-0">
-              <Calendar className="w-4 h-4 text-[#D4AF37]" /> {t('hotel', 'checkInDate')}
+              <Calendar className="w-4 h-4 text-[#e4bd55]" />{" "}
+              {t("hotel", "checkInDate")}
             </span>
-            <span className="font-medium text-slate-900">{formatDate(booking.checkIn)}</span>
+            <span className="font-medium text-slate-900">
+              {formatDate(booking.checkIn)}
+            </span>
           </div>
 
           <div className="flex items-center justify-between gap-4 pt-4">
             <span className="flex items-center gap-2 text-slate-500 shrink-0">
-              <Calendar className="w-4 h-4 text-[#D4AF37]" /> {t('hotel', 'checkOutDate')}
+              <Calendar className="w-4 h-4 text-[#e4bd55]" />{" "}
+              {t("hotel", "checkOutDate")}
             </span>
-            <span className="font-medium text-slate-900">{formatDate(booking.checkOut)}</span>
+            <span className="font-medium text-slate-900">
+              {formatDate(booking.checkOut)}
+            </span>
           </div>
 
           <div className="flex items-center justify-between gap-4 pt-4">
             <span className="flex items-center gap-2 text-slate-500 shrink-0">
-              <CreditCard className="w-4 h-4 text-[#D4AF37]" /> {t('hotel', 'paymentMethodLabel')}
+              <CreditCard className="w-4 h-4 text-[#e4bd55]" />{" "}
+              {t("hotel", "paymentMethodLabel")}
             </span>
             <span className="font-medium text-slate-900 capitalize">
-              {paymentMethod.replace(/_/g, ' ')}
+              {paymentMethod.replace(/_/g, " ")}
             </span>
           </div>
 
           <div className="flex items-center justify-between gap-4 pt-4">
-            <span className="text-slate-900 font-semibold">{t('hotel', 'totalAmount')}</span>
-            <span className="font-serif text-xl font-bold text-[#0F2942]">
+            <span className="text-slate-900 font-semibold">
+              {t("hotel", "totalAmount")}
+            </span>
+            <span className="font-serif text-xl font-bold text-[#0b1528]">
               {formatEthiopianBirr(booking.totalPrice)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <button
           type="button"
@@ -179,25 +196,25 @@ export function ConfirmationPanel({
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
         >
           {downloading ? (
-            <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
+            <Loader2 className="w-4 h-4 animate-spin text-[#e4bd55]" />
           ) : (
-            <FileDown className="w-4 h-4 text-[#D4AF37]" />
+            <FileDown className="w-4 h-4 text-[#e4bd55]" />
           )}
-          <span>{t('hotel', 'downloadInvoice')}</span>
+          <span>{t("hotel", "downloadInvoice")}</span>
         </button>
 
         <Link
           href="/dashboard"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-sm font-semibold transition-colors shadow-sm"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0b1528] hover:bg-[#12233a] text-white text-sm font-semibold transition-colors shadow-sm"
         >
-          {t('hotel', 'viewInMyBookings')} <ArrowRight className="w-4 h-4" />
+          {t("hotel", "viewInMyBookings")} <ArrowRight className="w-4 h-4" />
         </Link>
 
         <Link
           href="/search"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors"
         >
-          {t('hotel', 'exploreMoreHotels')}
+          {t("hotel", "exploreMoreHotels")}
         </Link>
       </div>
     </div>

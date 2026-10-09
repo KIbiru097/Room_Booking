@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/axios'
+import { apiClient } from "@/lib/axios"
 import type {
   Hotel,
   HotelSummary,
@@ -8,18 +8,20 @@ import type {
   HotelPolicy,
   ReviewsResponse,
   FavoriteHotel,
-} from '@/lib/types'
-import type { SearchHotelsQuery } from '@repo/shared-types'
+} from "@/lib/types"
+import type { SearchHotelsQuery } from "@repo/shared-types"
 
-function toQueryString(params?: Record<string, string | number | boolean | string[] | undefined>): string {
-  if (!params) return ''
+function toQueryString(
+  params?: Record<string, string | number | boolean | string[] | undefined>,
+): string {
+  if (!params) return ""
   const searchParams = new URLSearchParams()
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === '') return
+    if (value === undefined || value === null || value === "") return
     if (Array.isArray(value)) {
       if (value.length > 0) {
-        searchParams.set(key, value.join(','))
+        searchParams.set(key, value.join(","))
       }
     } else {
       searchParams.set(key, String(value))
@@ -27,12 +29,16 @@ function toQueryString(params?: Record<string, string | number | boolean | strin
   })
 
   const qs = searchParams.toString()
-  return qs ? `?${qs}` : ''
+  return qs ? `?${qs}` : ""
 }
 
 export const catalogService = {
-  searchHotels: async (params?: Partial<SearchHotelsQuery>): Promise<Paginated<HotelSummary>> => {
-    const res = await apiClient.get<Paginated<HotelSummary>>(`/catalog/hotels${toQueryString(params as any)}`)
+  searchHotels: async (
+    params?: Partial<SearchHotelsQuery>,
+  ): Promise<Paginated<HotelSummary>> => {
+    const res = await apiClient.get<Paginated<HotelSummary>>(
+      `/catalog/hotels${toQueryString(params as any)}`,
+    )
     return res.data
   },
 
@@ -43,7 +49,12 @@ export const catalogService = {
 
   getHotelRooms: async (
     hotelId: string,
-    params?: { startDate?: string; endDate?: string; checkIn?: string; checkOut?: string },
+    params?: {
+      startDate?: string
+      endDate?: string
+      checkIn?: string
+      checkOut?: string
+    },
   ): Promise<RoomAvailability[]> => {
     const checkIn = params?.checkIn || params?.startDate
     const checkOut = params?.checkOut || params?.endDate
@@ -62,34 +73,57 @@ export const catalogService = {
   },
 
   getHotelPolicy: async (hotelId: string): Promise<HotelPolicy> => {
-    const res = await apiClient.get<HotelPolicy>(`/catalog/hotels/${hotelId}/policy`)
-    return res.data
-  },
-
-  getCities: async (country?: string): Promise<Array<{ id: string; name: string; country: { name: string } }>> => {
-    const res = await apiClient.get<Array<{ id: string; name: string; country: { name: string } }>>(
-      `/catalog/cities${toQueryString({ country })}`,
+    const res = await apiClient.get<HotelPolicy>(
+      `/catalog/hotels/${hotelId}/policy`,
     )
     return res.data
   },
 
-  getCountries: async (): Promise<Array<{ id: string; name: string; code: string }>> => {
-    const res = await apiClient.get<Array<{ id: string; name: string; code: string }>>('/catalog/countries')
+  getCities: async (country?: string): Promise<Array<{
+    id: string
+    name: string
+    country: { name: string }
+  }>> => {
+    const res = await apiClient.get<Array<{
+      id: string
+      name: string
+      country: { name: string }
+    }>>(`/catalog/cities${toQueryString({ country })}`)
     return res.data
   },
 
-  getAmenities: async (): Promise<Array<{ id: string; name: string }>> => {
-    const res = await apiClient.get<Array<{ id: string; name: string }>>('/catalog/amenities')
+  getCountries: async (): Promise<Array<{
+    id: string
+    name: string
+    code: string
+  }>> => {
+    const res =
+      await apiClient.get<Array<{ id: string ;name: string ;code: string }>>(
+        "/catalog/countries",
+      )
     return res.data
   },
 
-  getHotelReviews: async (hotelId: string, page = 1): Promise<ReviewsResponse> => {
-    const res = await apiClient.get<ReviewsResponse>(`/hotels/${hotelId}/reviews?page=${page}`)
+  getAmenities: async (): Promise<Array<{ id: string ;name: string }>> => {
+    const res =
+      await apiClient.get<Array<{ id: string ;name: string }>>(
+        "/catalog/amenities",
+      )
+    return res.data
+  },
+
+  getHotelReviews: async (
+    hotelId: string,
+    page = 1,
+  ): Promise<ReviewsResponse> => {
+    const res = await apiClient.get<ReviewsResponse>(
+      `/hotels/${hotelId}/reviews?page=${page}`,
+    )
     return res.data
   },
 
   getFavorites: async (): Promise<FavoriteHotel[]> => {
-    const res = await apiClient.get<FavoriteHotel[]>('/favorites/my')
+    const res = await apiClient.get<FavoriteHotel[]>("/favorites/my")
     return res.data
   },
 
@@ -102,7 +136,7 @@ export const catalogService = {
   },
 
   getMyReviews: async (): Promise<any[]> => {
-    const res = await apiClient.get<any[]>('/reviews/my')
+    const res = await apiClient.get<any[]>("/reviews/my")
     return res.data
   },
 
@@ -113,7 +147,7 @@ export const catalogService = {
     comment: string
     photos?: string[]
   }): Promise<any> => {
-    const res = await apiClient.post('/reviews', data)
+    const res = await apiClient.post("/reviews", data)
     return res.data
   },
 

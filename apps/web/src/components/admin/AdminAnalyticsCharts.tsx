@@ -1,17 +1,18 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import {
-  TrendingUp,
-  BarChart2,
-  Calendar,
-  DollarSign,
-  Building2,
-  ArrowUpRight,
-  Sparkles,
-} from 'lucide-react'
-import { formatEthiopianBirr } from '@/lib/currency'
-import { useLanguage } from '@/lib/i18n'
+// Filter revenue series based on selected range
+
+// 30-day booking trend stats
+
+// Generate smooth SVG curve coordinates for revenue area chart
+
+// Cubic Bezier Path calculation for organic smooth curvature
+/* Chart Header & Mode Tabs */ /* Tab 1: Revenue Velocity Area Chart */ /* KPI Run Rate Bar */ /* Interactive SVG Chart Container */ /* Subtle luxury gradient fill */ /* Horizontal gridline pattern */ /* Horizontal Background Grid */ /* Gradient Area */ /* Main Curve Line */ /* Data Points and Interaction Hit Areas */ /* Vertical Crosshair on Hover */ /* Outer Ring */ /* Invisible Mouse Hit Target */ /* X-Axis Month Labels */ /* Dynamic Interactive Floating Tooltip */ /* Tab 2: 30-Day Daily Booking Velocity Chart */ /* 30-Day Bar/Column Visualization */ /* Tooltip on Hover */ /* Property Performance & Occupancy Distribution */ /* Most Booked Hotels Performance */ /* Live Occupancy by Hotel */
+
+import { useState } from "react"
+import { BarChart2, Building2, ArrowUpRight, Sparkles } from "lucide-react"
+import { formatEthiopianBirr } from "@/lib/currency"
+import { useLanguage } from "@/lib/i18n"
 
 export interface MonthlyRevenuePoint {
   month: string
@@ -49,27 +50,60 @@ interface AdminAnalyticsChartsProps {
 const formatMoney = (val: number) => formatEthiopianBirr(val)
 
 const formatShortMonth = (ym: string) => {
-  if (!ym) return ''
-  const parts = ym.split('-')
-  if (parts.length < 2) return ym
-  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1)
-  return new Intl.DateTimeFormat(undefined, { month: 'short' }).format(date)
+  if (!ym) return ""
+  const parts = ym.split("-")
+  if (
+    parts.length <
+    2
+  )
+    return ym
+  const date = new Date(
+    Number(parts[0]),
+    Number(parts[1]) -
+      1,
+    1,
+  )
+  return new Intl.DateTimeFormat(undefined, { month: "short" }).format(date)
 }
 
 const formatFullMonth = (ym: string) => {
-  if (!ym) return ''
-  const parts = ym.split('-')
-  if (parts.length < 2) return ym
-  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1)
-  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(date)
+  if (!ym) return ""
+  const parts = ym.split("-")
+  if (
+    parts.length <
+    2
+  )
+    return ym
+  const date = new Date(
+    Number(parts[0]),
+    Number(parts[1]) -
+      1,
+    1,
+  )
+  return new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    year: "numeric",
+  }).format(date)
 }
 
 const formatShortDate = (ymd: string) => {
-  if (!ymd) return ''
-  const parts = ymd.split('-')
-  if (parts.length < 3) return ymd
-  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
-  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+  if (!ymd) return ""
+  const parts = ymd.split("-")
+  if (
+    parts.length <
+    3
+  )
+    return ymd
+  const date = new Date(
+    Number(parts[0]),
+    Number(parts[1]) -
+      1,
+    Number(parts[2]),
+  )
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  }).format(date)
 }
 
 export function AdminAnalyticsCharts({
@@ -78,25 +112,39 @@ export function AdminAnalyticsCharts({
   topHotels,
   occupancyBreakdown,
 }: AdminAnalyticsChartsProps) {
-  const [revenueRange, setRevenueRange] = useState<'6' | '12'>('12')
-  const [hoveredRevenueIdx, setHoveredRevenueIdx] = useState<number | null>(null)
+  const [revenueRange, setRevenueRange] = useState<"6" | "12">("12")
+  const [hoveredRevenueIdx, setHoveredRevenueIdx] = useState<number | null>(
+    null,
+  )
   const [hoveredTrendIdx, setHoveredTrendIdx] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState<'revenue' | 'bookings'>('revenue')
+  const [activeTab, setActiveTab] = useState<"revenue" | "bookings">("revenue")
   const { t } = useLanguage()
-
-  // Filter revenue series based on selected range
   const revenueData =
-    revenueRange === '6' ? monthlyRevenue.slice(-6) : monthlyRevenue.slice(-12)
+    revenueRange ===
+    "6"
+      ? monthlyRevenue.slice(-6)
+      : monthlyRevenue.slice(-12)
 
   const maxRevenue = Math.max(...revenueData.map((d) => d.revenue), 1000)
-  const totalPeriodRevenue = revenueData.reduce((acc, d) => acc + d.revenue, 0)
-  const avgMonthlyRevenue = revenueData.length ? Math.round(totalPeriodRevenue / revenueData.length) : 0
-
-  // 30-day booking trend stats
+  const totalPeriodRevenue = revenueData.reduce(
+    (acc, d) =>
+      acc +
+      d.revenue,
+    0,
+  )
+  const avgMonthlyRevenue = revenueData.length
+    ? Math.round(
+        totalPeriodRevenue /
+          revenueData.length,
+      )
+    : 0
   const maxBookings = Math.max(...bookingTrends.map((d) => d.bookings), 5)
-  const totalRecentBookings = bookingTrends.reduce((acc, d) => acc + d.bookings, 0)
-
-  // Generate smooth SVG curve coordinates for revenue area chart
+  const totalRecentBookings = bookingTrends.reduce(
+    (acc, d) =>
+      acc +
+      d.bookings,
+    0,
+  )
   const svgWidth = 800
   const svgHeight = 260
   const paddingX = 40
@@ -107,16 +155,17 @@ export function AdminAnalyticsCharts({
   const points = revenueData.map((d, i) => {
     const x =
       paddingX +
-      (i / Math.max(revenueData.length - 1, 1)) * chartWidth
-    const y =
-      svgHeight -
-      paddingY -
-      (d.revenue / maxRevenue) * chartHeight
+      (i /
+        Math.max(
+          revenueData.length -
+            1,
+          1,
+        )) *
+        chartWidth
+    const y = svgHeight - paddingY - (d.revenue / maxRevenue) * chartHeight
     return { x, y, ...d }
   })
-
-  // Cubic Bezier Path calculation for organic smooth curvature
-  let pathD = ''
+  let pathD = ""
   if (points.length > 0) {
     pathD = `M ${points[0].x},${points[0].y}`
     for (let i = 0; i < points.length - 1; i++) {
@@ -132,7 +181,7 @@ export function AdminAnalyticsCharts({
 
   const areaD = pathD
     ? `${pathD} L ${points[points.length - 1].x},${svgHeight - paddingY} L ${points[0].x},${svgHeight - paddingY} Z`
-    : ''
+    : ""
 
   const hoveredPoint =
     hoveredRevenueIdx !== null && points[hoveredRevenueIdx]
@@ -141,18 +190,21 @@ export function AdminAnalyticsCharts({
 
   return (
     <div className="space-y-6 mb-8">
-      {/* Chart Header & Mode Tabs */}
+      {}
       <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-[#0F172A]">{t('admin', 'chartTrendsTitle')}</h2>
+              <h2 className="text-xl font-bold text-[#182333]">
+                {t("admin", "chartTrendsTitle")}
+              </h2>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#2563EB] border border-blue-100">
-                <Sparkles className="w-3 h-3" /> {t('admin', 'chartLiveAnalytics')}
+                <Sparkles className="w-3 h-3" />{" "}
+                {t("admin", "chartLiveAnalytics")}
               </span>
             </div>
             <p className="text-xs text-[#64748B] mt-1">
-              {t('admin', 'chartTrendsSubtitle')}
+              {t("admin", "chartTrendsSubtitle")}
             </p>
           </div>
 
@@ -160,113 +212,135 @@ export function AdminAnalyticsCharts({
             <div className="inline-flex bg-slate-100 p-1 rounded-xl">
               <button
                 type="button"
-                onClick={() => setActiveTab('revenue')}
+                onClick={() => setActiveTab("revenue")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'revenue'
-                    ? 'bg-white text-[#0F172A] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                  activeTab === "revenue"
+                    ? "bg-white text-[#182333] shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                {t('admin', 'chartRevenueTab')}
+                {t("admin", "chartRevenueTab")}
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('bookings')}
+                onClick={() => setActiveTab("bookings")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'bookings'
-                    ? 'bg-white text-[#0F172A] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                  activeTab === "bookings"
+                    ? "bg-white text-[#182333] shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                {t('admin', 'chartBookingsTab')}
+                {t("admin", "chartBookingsTab")}
               </button>
             </div>
 
-            {activeTab === 'revenue' && (
+            {activeTab === "revenue" && (
               <div className="inline-flex bg-slate-100 p-1 rounded-xl">
                 <button
                   type="button"
-                  onClick={() => setRevenueRange('6')}
+                  onClick={() => setRevenueRange("6")}
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    revenueRange === '6'
-                      ? 'bg-[#0F2942] text-[#D4AF37] shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900'
+                    revenueRange === "6"
+                      ? "bg-[#0b1528] text-[#e4bd55] shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  {t('admin', 'chartRange6M')}
+                  {t("admin", "chartRange6M")}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRevenueRange('12')}
+                  onClick={() => setRevenueRange("12")}
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    revenueRange === '12'
-                      ? 'bg-[#0F2942] text-[#D4AF37] shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900'
+                    revenueRange === "12"
+                      ? "bg-[#0b1528] text-[#e4bd55] shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  {t('admin', 'chartRange12M')}
+                  {t("admin", "chartRange12M")}
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Tab 1: Revenue Velocity Area Chart */}
-        {activeTab === 'revenue' && (
+        {}
+        {activeTab === "revenue" && (
           <div>
-            {/* KPI Run Rate Bar */}
+            {}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">{t('admin', 'chartPeriodTotalRevenue')}</div>
-                <div className="text-xl font-bold text-[#0F172A] mt-1">
+                <div className="text-xs text-slate-500 font-medium">
+                  {t("admin", "chartPeriodTotalRevenue")}
+                </div>
+                <div className="text-xl font-bold text-[#182333] mt-1">
                   {formatMoney(totalPeriodRevenue)}
                 </div>
                 <div className="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{t('admin', 'chartSettledTransactions')}</span>
+                  <span>{t("admin", "chartSettledTransactions")}</span>
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">{t('admin', 'chartMonthlyAverage')}</div>
-                <div className="text-xl font-bold text-[#0F172A] mt-1">
+                <div className="text-xs text-slate-500 font-medium">
+                  {t("admin", "chartMonthlyAverage")}
+                </div>
+                <div className="text-xl font-bold text-[#182333] mt-1">
                   {formatMoney(avgMonthlyRevenue)}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-0.5">
-                  {t('admin', 'chartAcrossMonths', { count: revenueData.length })}
+                  {t("admin", "chartAcrossMonths", {
+                    count: revenueData.length,
+                  })}
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">{t('admin', 'chartPeakMonth')}</div>
+                <div className="text-xs text-slate-500 font-medium">
+                  {t("admin", "chartPeakMonth")}
+                </div>
                 <div className="text-xl font-bold text-[#2563EB] mt-1">
                   {formatMoney(maxRevenue)}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">{t('admin', 'chartPeakMonthHelp')}</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  {t("admin", "chartPeakMonthHelp")}
+                </div>
               </div>
             </div>
 
-            {/* Interactive SVG Chart Container */}
+            {}
             <div className="relative w-full overflow-hidden">
               <svg
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`}
                 className="w-full h-64 select-none"
               >
                 <defs>
-                  {/* Subtle luxury gradient fill */}
+                  {}
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
                     <stop offset="70%" stopColor="#2563EB" stopOpacity="0.05" />
                     <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
                   </linearGradient>
 
-                  {/* Horizontal gridline pattern */}
-                  <pattern id="grid" width={svgWidth} height="40" patternUnits="userSpaceOnUse">
-                    <line x1="0" y1="0" x2={svgWidth} y2="0" stroke="#F1F5F9" strokeWidth="1" />
+                  {}
+                  <pattern
+                    id="grid"
+                    width={svgWidth}
+                    height="40"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2={svgWidth}
+                      y2="0"
+                      stroke="#F1F5F9"
+                      strokeWidth="1"
+                    />
                   </pattern>
                 </defs>
 
-                {/* Horizontal Background Grid */}
+                {}
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
                   const y = paddingY + chartHeight * (1 - ratio)
                   return (
@@ -294,10 +368,10 @@ export function AdminAnalyticsCharts({
                   )
                 })}
 
-                {/* Gradient Area */}
+                {}
                 {areaD && <path d={areaD} fill="url(#revenueGrad)" />}
 
-                {/* Main Curve Line */}
+                {}
                 {pathD && (
                   <path
                     d={pathD}
@@ -309,12 +383,12 @@ export function AdminAnalyticsCharts({
                   />
                 )}
 
-                {/* Data Points and Interaction Hit Areas */}
+                {}
                 {points.map((p, idx) => {
                   const isHovered = hoveredRevenueIdx === idx
                   return (
                     <g key={p.month}>
-                      {/* Vertical Crosshair on Hover */}
+                      {}
                       {isHovered && (
                         <line
                           x1={p.x}
@@ -327,7 +401,7 @@ export function AdminAnalyticsCharts({
                         />
                       )}
 
-                      {/* Outer Ring */}
+                      {}
                       <circle
                         cx={p.x}
                         cy={p.y}
@@ -338,7 +412,7 @@ export function AdminAnalyticsCharts({
                         className="transition-all duration-150"
                       />
 
-                      {/* Invisible Mouse Hit Target */}
+                      {}
                       <rect
                         x={p.x - chartWidth / (revenueData.length * 2)}
                         y={paddingY}
@@ -350,13 +424,13 @@ export function AdminAnalyticsCharts({
                         onMouseLeave={() => setHoveredRevenueIdx(null)}
                       />
 
-                      {/* X-Axis Month Labels */}
+                      {}
                       <text
                         x={p.x}
                         y={svgHeight - paddingY + 18}
                         fontSize="10"
-                        fill={isHovered ? '#0F172A' : '#64748B'}
-                        fontWeight={isHovered ? 'bold' : 'normal'}
+                        fill={isHovered ? "#182333" : "#64748B"}
+                        fontWeight={isHovered ? "bold" : "normal"}
                         textAnchor="middle"
                       >
                         {formatShortMonth(p.month)}
@@ -366,10 +440,10 @@ export function AdminAnalyticsCharts({
                 })}
               </svg>
 
-              {/* Dynamic Interactive Floating Tooltip */}
+              {}
               {hoveredPoint && (
                 <div
-                  className="absolute pointer-events-none z-20 bg-[#0F2942] text-white px-3.5 py-2.5 rounded-xl shadow-xl text-xs border border-[#D4AF37]/30 -translate-x-1/2 -translate-y-full transition-all duration-100"
+                  className="absolute pointer-events-none z-20 bg-[#0b1528] text-white px-3.5 py-2.5 rounded-xl shadow-xl text-xs border border-[#e4bd55]/30 -translate-x-1/2 -translate-y-full transition-all duration-100"
                   style={{
                     left: `${(hoveredPoint.x / svgWidth) * 100}%`,
                     top: `${(hoveredPoint.y / svgHeight) * 100 - 8}%`,
@@ -378,11 +452,11 @@ export function AdminAnalyticsCharts({
                   <div className="text-[11px] text-slate-300 font-medium">
                     {formatFullMonth(hoveredPoint.month)}
                   </div>
-                  <div className="text-sm font-bold text-[#D4AF37] mt-0.5">
+                  <div className="text-sm font-bold text-[#e4bd55] mt-0.5">
                     {formatMoney(hoveredPoint.revenue)}
                   </div>
                   <div className="text-[10px] text-slate-400 mt-0.5">
-                    {t('admin', 'chartTooltipTotalRevenue')}
+                    {t("admin", "chartTooltipTotalRevenue")}
                   </div>
                 </div>
               )}
@@ -390,22 +464,23 @@ export function AdminAnalyticsCharts({
           </div>
         )}
 
-        {/* Tab 2: 30-Day Daily Booking Velocity Chart */}
-        {activeTab === 'bookings' && (
+        {}
+        {activeTab === "bookings" && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs text-[#64748B]">
-                {t('admin', 'chartDailyPacing', { count: totalRecentBookings })}
+                {t("admin", "chartDailyPacing", { count: totalRecentBookings })}
               </div>
               <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                {t('admin', 'chartPeakPerDay', { count: maxBookings })}
+                {t("admin", "chartPeakPerDay", { count: maxBookings })}
               </div>
             </div>
 
-            {/* 30-Day Bar/Column Visualization */}
+            {}
             <div className="flex items-end gap-1.5 h-44 pt-6 pb-2 px-2 bg-slate-50 rounded-xl border border-slate-100 relative">
               {bookingTrends.map((d, idx) => {
-                const heightPercent = maxBookings > 0 ? (d.bookings / maxBookings) * 100 : 0
+                const heightPercent =
+                  maxBookings > 0 ? (d.bookings / maxBookings) * 100 : 0
                 const isHovered = hoveredTrendIdx === idx
                 return (
                   <div
@@ -417,22 +492,28 @@ export function AdminAnalyticsCharts({
                     <div
                       className={`w-full rounded-t-sm transition-all duration-200 ${
                         isHovered
-                          ? 'bg-[#0F2942]'
+                          ? "bg-[#0b1528]"
                           : d.bookings > 0
-                            ? 'bg-[#2563EB] hover:bg-[#1D4ED8]'
-                            : 'bg-slate-200'
+                            ? "bg-[#2563EB] hover:bg-[#1D4ED8]"
+                            : "bg-slate-200"
                       }`}
                       style={{ height: `${Math.max(heightPercent, 6)}%` }}
                     />
 
-                    {/* Tooltip on Hover */}
+                    {}
                     {isHovered && (
-                      <div className="absolute -top-12 z-30 bg-[#0F2942] text-white px-2.5 py-1.5 rounded-lg shadow-lg text-[11px] whitespace-nowrap border border-slate-700 pointer-events-none">
-                        <div className="font-semibold">{formatShortDate(d.date)}</div>
+                      <div className="absolute -top-12 z-30 bg-[#0b1528] text-white px-2.5 py-1.5 rounded-lg shadow-lg text-[11px] whitespace-nowrap border border-slate-700 pointer-events-none">
+                        <div className="font-semibold">
+                          {formatShortDate(d.date)}
+                        </div>
                         <div className="text-indigo-200">
                           {d.bookings === 1
-                            ? t('admin', 'chartReservationSingular', { count: d.bookings })
-                            : t('admin', 'chartReservationPlural', { count: d.bookings })}
+                            ? t("admin", "chartReservationSingular", {
+                                count: d.bookings,
+                              })
+                            : t("admin", "chartReservationPlural", {
+                                count: d.bookings,
+                              })}
                         </div>
                       </div>
                     )}
@@ -442,29 +523,40 @@ export function AdminAnalyticsCharts({
             </div>
 
             <div className="flex justify-between text-[10px] text-slate-400 mt-2 px-1">
-              <span>{formatShortDate(bookingTrends[0]?.date || '')}</span>
-              <span>{t('admin', 'fifteenDaysAgo')}</span>
-              <span>{t('admin', 'chartTodayWithDate', { date: formatShortDate(bookingTrends[bookingTrends.length - 1]?.date || '') })}</span>
+              <span>{formatShortDate(bookingTrends[0]?.date || "")}</span>
+              <span>{t("admin", "fifteenDaysAgo")}</span>
+              <span>
+                {t("admin", "chartTodayWithDate", {
+                  date: formatShortDate(
+                    bookingTrends[bookingTrends.length - 1]?.date || "",
+                  ),
+                })}
+              </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Property Performance & Occupancy Distribution */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Most Booked Hotels Performance */}
+        {}
         <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-[#0F172A] text-base flex items-center gap-2">
+            <h3 className="font-bold text-[#182333] text-base flex items-center gap-2">
               <Building2 className="w-4 h-4 text-[#2563EB]" />
-              <span>{t('admin', 'chartTopProperties')}</span>
+              <span>{t("admin", "chartTopProperties")}</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">{t('admin', 'chartRankedByStays')}</span>
+            <span className="text-xs text-slate-500 font-medium">
+              {t("admin", "chartRankedByStays")}
+            </span>
           </div>
 
           <div className="space-y-4">
             {topHotels.slice(0, 5).map((h, idx) => {
-              const maxHotelBookings = Math.max(...topHotels.map((th) => th.bookings), 1)
+              const maxHotelBookings = Math.max(
+                ...topHotels.map((th) => th.bookings),
+                1,
+              )
               const percent = Math.round((h.bookings / maxHotelBookings) * 100)
               return (
                 <div key={h.hotelId} className="space-y-1.5">
@@ -473,12 +565,18 @@ export function AdminAnalyticsCharts({
                       <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-[10px]">
                         {idx + 1}
                       </span>
-                      <span className="font-medium text-[#0F172A]">{h.name}</span>
+                      <span className="font-medium text-[#182333]">
+                        {h.name}
+                      </span>
                     </div>
                     <span className="font-bold text-slate-800">
                       {h.bookings === 1
-                        ? t('admin', 'chartBookingSingular', { count: h.bookings })
-                        : t('admin', 'chartBookingPlural', { count: h.bookings })}
+                        ? t("admin", "chartBookingSingular", {
+                            count: h.bookings,
+                          })
+                        : t("admin", "chartBookingPlural", {
+                            count: h.bookings,
+                          })}
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -493,20 +591,22 @@ export function AdminAnalyticsCharts({
 
             {!topHotels.length && (
               <p className="text-xs text-slate-400 py-6 text-center">
-                {t('admin', 'chartEmptyProperties')}
+                {t("admin", "chartEmptyProperties")}
               </p>
             )}
           </div>
         </div>
 
-        {/* Live Occupancy by Hotel */}
+        {}
         <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-[#0F172A] text-base flex items-center gap-2">
+            <h3 className="font-bold text-[#182333] text-base flex items-center gap-2">
               <BarChart2 className="w-4 h-4 text-emerald-600" />
-              <span>{t('admin', 'chartOccupancyTitle')}</span>
+              <span>{t("admin", "chartOccupancyTitle")}</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">{t('admin', 'chartTodaysStays')}</span>
+            <span className="text-xs text-slate-500 font-medium">
+              {t("admin", "chartTodaysStays")}
+            </span>
           </div>
 
           <div className="space-y-4">
@@ -516,9 +616,11 @@ export function AdminAnalyticsCharts({
                 return (
                   <div key={ob.hotelId} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-[#0F172A]">{ob.name}</span>
+                      <span className="font-medium text-[#182333]">
+                        {ob.name}
+                      </span>
                       <span className="font-bold text-slate-800">
-                        {t('admin', 'chartRoomsOccupied', {
+                        {t("admin", "chartRoomsOccupied", {
                           rate: ratePercent,
                           occupied: ob.occupiedToday,
                           total: ob.totalRooms,
@@ -529,10 +631,10 @@ export function AdminAnalyticsCharts({
                       <div
                         className={`h-2 rounded-full transition-all duration-500 ${
                           ratePercent > 70
-                            ? 'bg-emerald-600'
+                            ? "bg-emerald-600"
                             : ratePercent > 30
-                              ? 'bg-blue-600'
-                              : 'bg-amber-500'
+                              ? "bg-blue-600"
+                              : "bg-amber-500"
                         }`}
                         style={{ width: `${ratePercent}%` }}
                       />
@@ -542,7 +644,7 @@ export function AdminAnalyticsCharts({
               })
             ) : (
               <div className="py-8 text-center text-xs text-slate-400">
-                {t('admin', 'chartAllRoomsAvailable')}
+                {t("admin", "chartAllRoomsAvailable")}
               </div>
             )}
           </div>

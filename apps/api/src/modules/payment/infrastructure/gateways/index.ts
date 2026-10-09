@@ -8,4 +8,5 @@ export * from './mock-payment.gateway';
 export * from './chapa-mock.provider';
 export * from './bank-mock.provider';
 export * from '../mock-sms.service';
+export * from '../sms.service';
 export * from './provider-ref';

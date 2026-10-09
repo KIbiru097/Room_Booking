@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { z } from 'zod';
-import { Role } from '../../../../generated/prisma/client';
+import { PlaceCategory, Role } from '../../../../generated/prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { BookingService } from '../../../booking/application/booking.service';
 import { CatalogService } from '../../../catalog/application/catalog.service';
@@ -716,7 +716,8 @@ export class GetHeritageInfoTool implements AITool {
       properties: {
         city: {
           type: 'string',
-          description: 'City name (e.g. Addis Ababa, Axum, Lalibela)',
+          description:
+            'City name to limit results to (e.g. Gondar, Addis Ababa, Axum, Lalibela). Omit only if the user names no city.',
         },
         query: {
           type: 'string',
@@ -734,12 +735,21 @@ export class GetHeritageInfoTool implements AITool {
     if (!parsed.success) {
       throw new Error(`Invalid arguments: ${parsed.error.message}`);
     }
-    const { query, limit } = parsed.data;
+    const { city, query, limit } = parsed.data;
+    const targetCity = city?.trim();
 
     const sites = await this.db.place.findMany({
       where: {
         status: 'PUBLISHED',
-        category: { in: ['HERITAGE', 'MUSEUM'] as any },
+        sourceId: { not: null },
+        category: { in: [PlaceCategory.HERITAGE, PlaceCategory.MUSEUM] },
+        ...(targetCity
+          ? {
+              city: {
+                name: { contains: targetCity, mode: 'insensitive' },
+              },
+            }
+          : {}),
         ...(query
           ? {
               OR: [
@@ -749,22 +759,32 @@ export class GetHeritageInfoTool implements AITool {
             }
           : {}),
       },
-      include: { source: true },
+      include: { source: true, city: { select: { name: true } } },
       take: limit,
       orderBy: { rating: 'desc' },
     });
 
     return {
+      city: sites[0]?.city?.name ?? targetCity ?? null,
       heritageSites: sites.map((s) => ({
         name: s.name,
         amharicName: s.amharicName,
+        city: s.city?.name ?? null,
         historyAndSignificance: s.description,
         address: s.address,
         openingHours: s.openingHours,
+        hoursNote: s.hoursVerified
+          ? 'Verified official hours'
+          : 'Hours may vary / unverified (PLACE-010)',
         verifiedSource: s.source
           ? `${s.source.name} (${s.source.license || 'Verified'})`
           : 'Official Tourism Records',
       })),
+      ...(targetCity && sites.length === 0
+        ? {
+            note: `No verified heritage records for "${targetCity}" in approved sources. Say so instead of guessing.`,
+          }
+        : {}),
     };
   }
 }

@@ -1255,7 +1255,12 @@ export class BookingService {
     client: Prisma.TransactionClient | PrismaService = this.db,
   ) {
     if (!promoCode) return;
-    const coupon = await this.coupons.validate(promoCode, client);
+    const coupon = await this.coupons.validate(
+      promoCode,
+      client,
+      quote.total,
+      quote.hotelId,
+    );
     const applied = applyCoupon(quote.total, coupon);
     quote.discount = applied.discount;
     quote.total = applied.total;

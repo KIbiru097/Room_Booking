@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import { formatEthiopianBirr } from '@/lib/currency'
-import { useLanguage } from '@/lib/i18n'
+import * as React from "react"
+import { formatEthiopianBirr } from "@/lib/currency"
+import { useLanguage } from "@/lib/i18n"
 
 export interface PriceRangeSliderProps {
   min?: number
@@ -19,7 +19,7 @@ export function PriceRangeSlider({
   step = 1000,
   value,
   onChange,
-  className = '',
+  className = "",
 }: PriceRangeSliderProps) {
   const { t } = useLanguage()
   const [minVal, maxVal] = value
@@ -31,28 +31,24 @@ export function PriceRangeSlider({
     }
   }
 
-  const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value)
-    if (val <= maxVal) {
-      onChange([val, maxVal])
-    }
-  }
-
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
         <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
           {formatEthiopianBirr(minVal)}
         </span>
-        <span className="text-slate-400 font-normal">{t('hotel', 'toLabel')}</span>
-        <span className="bg-[#FEF9E7] text-[#92400E] px-2.5 py-1 rounded-lg border border-[#D4AF37]/35 font-bold">
-          {formatEthiopianBirr(maxVal)}{maxVal >= max ? '+' : ''}
+        <span className="text-slate-400 font-normal">
+          {t("hotel", "toLabel")}
+        </span>
+        <span className="bg-[#FEF9E7] text-[#92400E] px-2.5 py-1 rounded-lg border border-[#e4bd55]/35 font-bold">
+          {formatEthiopianBirr(maxVal)}
+          {maxVal >= max ? "+" : ""}
         </span>
       </div>
 
       <div className="space-y-1">
         <label htmlFor="price-slider-max" className="sr-only">
-          {t('hotel', 'maxPricePerNight')}
+          {t("hotel", "maxPricePerNight")}
         </label>
         <input
           id="price-slider-max"
@@ -62,7 +58,7 @@ export function PriceRangeSlider({
           step={step}
           value={maxVal}
           onChange={handleMaxChange}
-          className="w-full accent-[#0F2942] cursor-pointer h-2 bg-slate-200 rounded-lg"
+          className="w-full accent-[#0b1528] cursor-pointer h-2 bg-slate-200 rounded-lg"
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={maxVal}

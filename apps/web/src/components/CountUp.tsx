@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { useInView, useMotionValue, useSpring } from 'framer-motion'
-import { useCallback, useEffect, useRef } from 'react'
+import { useInView, useMotionValue, useSpring } from "framer-motion"
+import { useCallback, useEffect, useRef } from "react"
 
 interface CountUpProps {
   to: number
@@ -19,22 +19,22 @@ export default function CountUp({
   from = 0,
   duration = 2,
   delay = 0,
-  className = '',
-  separator = ',',
-  suffix = '',
-  prefix = '',
+  className = "",
+  separator = ",",
+  suffix = "",
+  prefix = "",
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null)
   const motionValue = useMotionValue(from)
   const damping = 20 + 40 * (1 / duration)
   const stiffness = 100 * (1 / duration)
   const springValue = useSpring(motionValue, { damping, stiffness })
-  const isInView = useInView(ref, { once: true, margin: '0px' })
+  const isInView = useInView(ref, { once: true, margin: "0px" })
 
   const getDecimalPlaces = (num: number) => {
     const str = num.toString()
-    if (str.includes('.')) {
-      const d = str.split('.')[1]
+    if (str.includes(".")) {
+      const d = str.split(".")[1]
       if (parseInt(d) !== 0) return d.length
     }
     return 0
@@ -48,10 +48,12 @@ export default function CountUp({
         minimumFractionDigits: maxDecimals > 0 ? maxDecimals : 0,
         maximumFractionDigits: maxDecimals > 0 ? maxDecimals : 0,
       }
-      const formatted = Intl.NumberFormat('en-US', options).format(latest)
-      return `${prefix}${separator ? formatted.replace(/,/g, separator) : formatted}${suffix}`
+      const formatted = Intl.NumberFormat("en-US", options).format(latest)
+      return `${prefix}${
+        separator ? formatted.replace(/,/g, separator) : formatted
+      }${suffix}`
     },
-    [maxDecimals, separator, prefix, suffix]
+    [maxDecimals, separator, prefix, suffix],
   )
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function CountUp({
   }, [isInView, motionValue, to, delay])
 
   useEffect(() => {
-    const unsub = springValue.on('change', (latest: number) => {
+    const unsub = springValue.on("change", (latest: number) => {
       if (ref.current) ref.current.textContent = formatValue(latest)
     })
     return unsub

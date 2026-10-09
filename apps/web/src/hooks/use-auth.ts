@@ -1,8 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { authService } from '@/services/auth.service'
-import { useAuth } from '@/lib/auth-store'
-import type { LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput } from '@repo/shared-types'
-import { useRouter } from 'next/navigation'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { authService } from "@/services/auth.service"
+import { useAuth } from "@/lib/auth-store"
+import type {
+  LoginInput,
+  RegisterInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from "@repo/shared-types"
+import { useRouter } from "next/navigation"
 
 export function useLoginMutation() {
   const queryClient = useQueryClient()
@@ -14,7 +19,7 @@ export function useLoginMutation() {
       // MFA challenges deliberately do not create a session yet.
       if (data.mfaRequired) return
       setSession(data)
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ["profile"] })
     },
   })
 }
@@ -24,10 +29,11 @@ export function useVerifyMfaMutation() {
   const setSession = useAuth((s) => s.setSession)
 
   return useMutation({
-    mutationFn: (dto: { challengeToken: string; code: string }) => authService.verifyMfa(dto),
+    mutationFn: (dto: { challengeToken: string ;code: string }) =>
+      authService.verifyMfa(dto),
     onSuccess: (data) => {
       setSession(data)
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ["profile"] })
     },
   })
 }
@@ -41,7 +47,7 @@ export function useRegisterMutation() {
     onSuccess: (data) => {
       if (data?.accessToken) {
         setSession(data)
-        queryClient.invalidateQueries({ queryKey: ['profile'] })
+        queryClient.invalidateQueries({ queryKey: ["profile"] })
       }
     },
   })
@@ -61,7 +67,7 @@ export function useGoogleLoginMutation() {
     onSuccess: (data) => {
       if (data?.accessToken) {
         setSession(data)
-        queryClient.invalidateQueries({ queryKey: ['profile'] })
+        queryClient.invalidateQueries({ queryKey: ["profile"] })
       }
     },
   })
@@ -89,7 +95,7 @@ export function useLogoutMutation() {
     onSettled: () => {
       logout()
       queryClient.clear()
-      router.push('/')
+      router.push("/")
     },
   })
 }
@@ -99,7 +105,7 @@ export function useProfileQuery() {
   const setUser = useAuth((s) => s.setUser)
 
   return useQuery({
-    queryKey: ['profile', user?.id],
+    queryKey: ["profile", user?.id],
     queryFn: async () => {
       const profile = await authService.getProfile()
       setUser(profile)
@@ -123,8 +129,8 @@ export function useUpdateProfileMutation() {
     }) => authService.updateProfile(dto),
     onSuccess: (updatedUser) => {
       setUser(updatedUser)
-      queryClient.setQueryData(['profile', updatedUser.id], updatedUser)
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.setQueryData(["profile", updatedUser.id], updatedUser)
+      queryClient.invalidateQueries({ queryKey: ["profile"] })
     },
   })
 }
@@ -137,8 +143,8 @@ export function useUploadProfilePhotoMutation() {
     mutationFn: (file: File) => authService.uploadProfilePhoto(file),
     onSuccess: (updatedUser) => {
       setUser(updatedUser)
-      queryClient.setQueryData(['profile', updatedUser.id], updatedUser)
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.setQueryData(["profile", updatedUser.id], updatedUser)
+      queryClient.invalidateQueries({ queryKey: ["profile"] })
     },
   })
 }

@@ -7,13 +7,17 @@ import {
 import { Prisma } from '../../../generated/prisma/client';
 import type { Coupon } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import type { CreateCouponInput, UpdateCouponInput } from '@repo/shared-types';
 
 type DbClient = PrismaService | Prisma.TransactionClient;
 
 @Injectable()
 export class CouponService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly scope: ResourceScopeHelper,
+  ) {}
 
   async list() {
     return this.db.coupon.findMany({ orderBy: { code: 'asc' } });
@@ -37,6 +41,62 @@ export class CouponService {
       }
       throw error;
     }
+  }
+
+  async listForManager(managerId: string) {
+    const hotelId = await this.scope.getManagerHotelId(managerId);
+    return this.db.coupon.findMany({
+      where: { hotelId },
+      orderBy: { code: 'asc' },
+    });
+  }
+
+  async createForManager(dto: CreateCouponInput, managerId: string) {
+    const hotelId = await this.scope.getManagerHotelId(managerId);
+    try {
+      return await this.db.coupon.create({
+        data: {
+          hotelId,
+          code: dto.code,
+          discountType: dto.discountType,
+          value: dto.value,
+          validFrom: dto.validFrom,
+          validTo: dto.validTo,
+          usageLimit: dto.usageLimit,
+          minBookingAmount: dto.minBookingAmount,
+        },
+      });
+    } catch (error) {
+      if (this.isUniqueViolation(error)) {
+        throw new ConflictException(`Coupon code "${dto.code}" already exists`);
+      }
+      throw error;
+    }
+  }
+
+  async updateForManager(
+    id: string,
+    dto: UpdateCouponInput,
+    managerId: string,
+  ) {
+    const hotelId = await this.scope.getManagerHotelId(managerId);
+    await this.assertManagerCoupon(id, hotelId);
+    try {
+      return await this.db.coupon.update({ where: { id }, data: dto });
+    } catch (error) {
+      if (this.isUniqueViolation(error)) {
+        throw new ConflictException('Coupon code already exists');
+      }
+      throw error;
+    }
+  }
+
+  /** Manager deletion is a deactivation to preserve historical bookings. */
+  async deactivateForManager(id: string, managerId: string) {
+    const hotelId = await this.scope.getManagerHotelId(managerId);
+    await this.assertManagerCoupon(id, hotelId);
+    await this.db.coupon.update({ where: { id }, data: { isActive: false } });
+    return { deactivated: true };
   }
 
   async update(id: string, dto: UpdateCouponInput) {
@@ -71,6 +131,7 @@ export class CouponService {
     code: string,
     client: DbClient = this.db,
     bookingAmount?: number,
+    hotelId?: string,
   ): Promise<Coupon> {
     const normalized = code.trim().toUpperCase();
     const coupon = await client.coupon.findUnique({
@@ -78,6 +139,11 @@ export class CouponService {
     });
     if (!coupon) {
       throw new BadRequestException(`Invalid promo code "${normalized}"`);
+    }
+    if (coupon.hotelId && coupon.hotelId !== hotelId) {
+      throw new BadRequestException(
+        `Promo code "${normalized}" is not valid for this hotel`,
+      );
     }
     if (!coupon.isActive) {
       throw new BadRequestException(
@@ -119,5 +185,11 @@ export class CouponService {
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'
     );
+  }
+
+  private async assertManagerCoupon(id: string, hotelId: string) {
+    const coupon = await this.db.coupon.findFirst({ where: { id, hotelId } });
+    if (!coupon) throw new NotFoundException('Coupon not found');
+    return coupon;
   }
 }

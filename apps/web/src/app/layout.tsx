@@ -1,30 +1,12 @@
 import type { Metadata, Viewport } from "next"
-import { Inter, Playfair_Display, Noto_Sans_Ethiopic } from "next/font/google"
 import "./globals.css"
 import { Suspense } from "react"
 import NavBar from "@/components/NavBar"
+import Footer from "@/components/Footer"
 import { NavigationProgressBar } from "@/components/NavigationProgressBar"
 import AIChat from "@/components/AIChat"
+import PwaRegistration from "@/components/PwaRegistration"
 import { AppProviders } from "@/providers/AppProviders"
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-})
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-})
-
-const notoSansEthiopic = Noto_Sans_Ethiopic({
-  subsets: ["ethiopic"],
-  variable: "--font-ethiopic",
-  display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
-})
 
 export const metadata: Metadata = {
   title: {
@@ -57,27 +39,59 @@ export const metadata: Metadata = {
     description:
       "Experience extraordinary luxury hospitality, boutique suites, and grand resorts.",
   },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/icons/luxstay-192.svg",
+        type: "image/svg+xml",
+        sizes: "192x192",
+      },
+      {
+        url: "/icons/luxstay-512.svg",
+        type: "image/svg+xml",
+        sizes: "512x512",
+      },
+    ],
+    apple: "/icons/luxstay-192.svg",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "LuxStay",
+    statusBarStyle: "black-translucent",
+  },
   robots: { index: true, follow: true },
 }
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0F2942",
+  themeColor: "#0b1528",
 }
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${notoSansEthiopic.variable}`}>
-      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-[#D4AF37]/30 selection:text-[#0F2942]">
+    <html lang="en" suppressHydrationWarning className="">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('luxstay-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}}catch(e){}})();" +
+              "(function(){try{var l=localStorage.getItem('luxstay_lang');if(l==='am'||l==='en'){document.documentElement.lang=l;document.documentElement.dir='ltr';}}catch(e){}})();",
+          }}
+        />
+      </head>
+      <body className="min-h-screen bg-[#f3efe5] text-[#182333] font-sans selection:bg-[#e4bd55]/30 selection:text-[#0b1528]">
         <Suspense fallback={null}>
           <NavigationProgressBar />
         </Suspense>
         <AppProviders>
+          <PwaRegistration />
           <NavBar />
           <main className="pt-18">{children}</main>
+          <Footer />
           <AIChat />
         </AppProviders>
       </body>

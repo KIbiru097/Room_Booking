@@ -63,6 +63,15 @@ export class ManagerCatalogController {
     return this.manager.myHotels(req.user);
   }
 
+  @Get('manager/my-hotel')
+  @Roles(Role.MANAGER)
+  @ApiOperation({
+    summary: 'Resolve the authenticated manager single assigned hotel',
+  })
+  myHotel(@Req() req: AuthedRequest) {
+    return this.manager.myHotel(req.user);
+  }
+
   @Post('hotels')
   @Roles(Role.MANAGER, Role.ADMIN)
   @Throttle({ default: { ttl: 60_000, limit: 120 } })

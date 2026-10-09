@@ -1,6 +1,6 @@
-import { apiClient } from '@/lib/axios'
-import type { Payment } from '@/lib/types'
-import type { PaymentMethod } from '@repo/shared-types'
+import { apiClient, ApiError } from "@/lib/axios"
+import type { Payment } from "@/lib/types"
+import type { PaymentMethod } from "@repo/shared-types"
 
 export interface PaymentIntentResult {
   paymentId: string
@@ -12,40 +12,78 @@ export interface PaymentIntentResult {
 
 export const paymentService = {
   // Create or refresh payment intent with Idempotency Key
-  createIntent: async (bookingId: string, method: PaymentMethod): Promise<PaymentIntentResult> => {
-    const res = await apiClient.post<PaymentIntentResult>(`/payments/${bookingId}/intent`, { method })
+  createIntent: async (
+    bookingId: string,
+    method: PaymentMethod,
+  ): Promise<PaymentIntentResult> => {
+    const res = await apiClient.post<PaymentIntentResult>(
+      `/payments/${bookingId}/intent`,
+      { method },
+    )
     return res.data
   },
 
   // Get user payments
   getMyPayments: async (): Promise<{ data: Payment[] }> => {
-    const res = await apiClient.get<{ data: Payment[] }>('/payments/my')
+    const res = await apiClient.get<{ data: Payment[] }>("/payments/my")
     return res.data
   },
 
   // Mock gateway completion callback for testing
   mockGatewayCallback: async (
     bookingId: string,
-    data?: { reference?: string; transactionId?: string; message?: string; status?: 'SUCCEEDED' | 'FAILED' },
-    secret = process.env.NEXT_PUBLIC_MOCK_PAYMENT_WEBHOOK_SECRET || 'development-mock-payment-secret',
+    data?: {
+      reference?: string
+      transactionId?: string
+      message?: string
+      status?: "SUCCEEDED" | "FAILED"
+    },
+    secret = process.env.NEXT_PUBLIC_MOCK_PAYMENT_WEBHOOK_SECRET ||
+      "development-mock-payment-secret",
   ): Promise<any> => {
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.NEXT_PUBLIC_ENABLE_MOCK_PAYMENT !== "true"
+    ) {
+      throw new ApiError(
+        "Mock payment callbacks are disabled in production environment.",
+        403,
+        "FORBIDDEN",
+      )
+    }
     const res = await apiClient.post(
       `/payments/mock/${bookingId}`,
-      { status: 'SUCCEEDED', ...data },
-      { headers: { 'x-mock-payment-secret': secret } },
+      { status: "SUCCEEDED", ...data },
+      { headers: { "x-mock-payment-secret": secret } },
     )
     return res.data
   },
 
   mockCallback: async (
     bookingId: string,
-    data?: { reference?: string; transactionId?: string; message?: string; status?: 'SUCCEEDED' | 'FAILED' },
-    secret = process.env.NEXT_PUBLIC_MOCK_PAYMENT_WEBHOOK_SECRET || 'development-mock-payment-secret',
+    data?: {
+      reference?: string
+      transactionId?: string
+      message?: string
+      status?: "SUCCEEDED" | "FAILED"
+    },
+    secret = process.env.NEXT_PUBLIC_MOCK_PAYMENT_WEBHOOK_SECRET ||
+      "development-mock-payment-secret",
   ): Promise<any> => {
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.NEXT_PUBLIC_ENABLE_MOCK_PAYMENT !== "true"
+    ) {
+      throw new ApiError(
+        "Mock payment callbacks are disabled in production environment.",
+        403,
+        "FORBIDDEN",
+      )
+    }
     const res = await apiClient.post(
       `/payments/mock/${bookingId}`,
-      { status: 'SUCCEEDED', ...data },
-      { headers: { 'x-mock-payment-secret': secret } },
+      { status: "SUCCEEDED", ...data },
+      { headers: { "x-mock-payment-secret": secret } },
     )
     return res.data
   },
@@ -58,7 +96,9 @@ export const paymentService = {
 
   // Staff mark cash paid
   markCashPaid: async (bookingId: string, reference?: string): Promise<any> => {
-    const res = await apiClient.post(`/payments/${bookingId}/cash-paid`, { reference })
+    const res = await apiClient.post(`/payments/${bookingId}/cash-paid`, {
+      reference,
+    })
     return res.data
   },
 }

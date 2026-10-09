@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import { AlertCircle, RefreshCw } from 'lucide-react'
-import { Button } from './Button'
-import { useLanguage } from '@/lib/i18n'
+import * as React from "react"
+import { AlertCircle, RefreshCw } from "lucide-react"
+import { Button } from "./Button"
+import { useLanguage } from "@/lib/i18n"
 
 export interface ErrorStateProps {
   title?: string
@@ -16,10 +16,10 @@ export function ErrorState({
   title,
   message,
   onRetry,
-  className = '',
+  className = "",
 }: ErrorStateProps) {
   const { t } = useLanguage()
-  const heading = title ?? t('common', 'somethingWentWrong')
+  const heading = title ?? t("common", "somethingWentWrong")
   return (
     <div
       role="alert"
@@ -29,8 +29,12 @@ export function ErrorState({
         <AlertCircle className="w-6 h-6" />
       </div>
       <div className="flex-1">
-        <h4 className="font-serif text-lg font-bold text-red-900 mb-1">{heading}</h4>
-        <p className="text-sm text-red-700 leading-relaxed max-w-xl">{message}</p>
+        <h4 className="font-serif text-lg font-bold text-red-900 mb-1">
+          {heading}
+        </h4>
+        <p className="text-sm text-red-700 leading-relaxed max-w-xl">
+          {message}
+        </p>
         {onRetry && (
           <div className="mt-4">
             <Button
@@ -39,7 +43,7 @@ export function ErrorState({
               onClick={onRetry}
               leftIcon={<RefreshCw className="w-4 h-4" />}
             >
-              {t('common', 'tryAgain')}
+              {t("common", "tryAgain")}
             </Button>
           </div>
         )}

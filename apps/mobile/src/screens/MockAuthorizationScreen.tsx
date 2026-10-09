@@ -57,6 +57,10 @@ export default function MockAuthorizationScreen() {
     setProcessing(true);
 
     try {
+      if (!__DEV__ && process.env.EXPO_PUBLIC_ENABLE_MOCK_PAYMENT !== 'true') {
+        throw new Error('Mock payment simulation is disabled in production builds.');
+      }
+
       // Handle scenario delays
       if (scenario === 'PENDING' && status === 'SUCCEEDED') {
         await new Promise((resolve) => setTimeout(resolve, 10000));

@@ -55,7 +55,11 @@ export class TripController {
 
   @Patch(':tripId')
   @ApiOperation({ summary: 'Update a private trip' })
-  update(@Param() params: TripIdParamsDto, @Body() dto: UpdateTripDto, @Req() req: AuthedRequest) {
+  update(
+    @Param() params: TripIdParamsDto,
+    @Body() dto: UpdateTripDto,
+    @Req() req: AuthedRequest,
+  ) {
     return this.trips.update(params.tripId, dto, req.user.sub);
   }
 
@@ -68,27 +72,48 @@ export class TripController {
   @Post(':tripId/items')
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Add an itinerary item with conflict metadata' })
-  addItem(@Param() params: TripIdParamsDto, @Body() dto: CreateTripItemDto, @Req() req: AuthedRequest) {
+  addItem(
+    @Param() params: TripIdParamsDto,
+    @Body() dto: CreateTripItemDto,
+    @Req() req: AuthedRequest,
+  ) {
     return this.trips.addItem(params.tripId, dto, req.user.sub);
   }
 
   @Patch(':tripId/items/:itemId')
   @ApiOperation({ summary: 'Edit an itinerary item' })
-  updateItem(@Param() params: TripItemParamsDto, @Body() dto: UpdateTripItemDto, @Req() req: AuthedRequest) {
-    return this.trips.updateItem(params.tripId, params.itemId, dto, req.user.sub);
+  updateItem(
+    @Param() params: TripItemParamsDto,
+    @Body() dto: UpdateTripItemDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.trips.updateItem(
+      params.tripId,
+      params.itemId,
+      dto,
+      req.user.sub,
+    );
   }
 
   @Delete(':tripId/items/:itemId')
-  @ApiOperation({ summary: 'Delete an itinerary item without changing its booking' })
+  @ApiOperation({
+    summary: 'Delete an itinerary item without changing its booking',
+  })
   removeItem(@Param() params: TripItemParamsDto, @Req() req: AuthedRequest) {
     return this.trips.removeItem(params.tripId, params.itemId, req.user.sub);
   }
 
   @Post(':tripId/build-day')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Generate a day plan draft based on hotel location, opening hours, and duration' })
-  buildDay(@Param() params: TripIdParamsDto, @Body() dto: BuildDayDto, @Req() req: AuthedRequest) {
+  @ApiOperation({
+    summary:
+      'Generate a day plan draft based on hotel location, opening hours, and duration',
+  })
+  buildDay(
+    @Param() params: TripIdParamsDto,
+    @Body() dto: BuildDayDto,
+    @Req() req: AuthedRequest,
+  ) {
     return this.trips.buildDay(params.tripId, dto, req.user.sub);
   }
 }
-

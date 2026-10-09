@@ -353,23 +353,38 @@ ${ragContext}`;
           isError: execOutcome.isError,
         });
 
-        if (call.name === 'getNearbyPlaces' && !execOutcome.isError && execOutcome.result && typeof execOutcome.result === 'object') {
+        if (
+          call.name === 'getNearbyPlaces' &&
+          !execOutcome.isError &&
+          execOutcome.result &&
+          typeof execOutcome.result === 'object'
+        ) {
           const candidate = execOutcome.result as { places?: unknown };
           if (Array.isArray(candidate.places)) {
             for (const place of candidate.places) {
               if (!place || typeof place !== 'object') continue;
               const item = place as Record<string, unknown>;
-              if (typeof item.id !== 'string' || typeof item.name !== 'string') continue;
+              if (typeof item.id !== 'string' || typeof item.name !== 'string')
+                continue;
               placeCards.push({
                 id: item.id,
                 name: item.name,
-                category: typeof item.category === 'string' ? item.category : undefined,
-                distanceKm: typeof item.distanceKm === 'number' ? item.distanceKm : undefined,
+                category:
+                  typeof item.category === 'string' ? item.category : undefined,
+                distanceKm:
+                  typeof item.distanceKm === 'number'
+                    ? item.distanceKm
+                    : undefined,
                 images: Array.isArray(item.images) ? item.images : undefined,
-                verifiedSource: item.verifiedSource && typeof item.verifiedSource === 'object'
-                  ? item.verifiedSource as ChatPlaceCard['verifiedSource']
-                  : null,
-                lastVerifiedAt: typeof item.lastVerifiedAt === 'string' || item.lastVerifiedAt instanceof Date ? item.lastVerifiedAt : null,
+                verifiedSource:
+                  item.verifiedSource && typeof item.verifiedSource === 'object'
+                    ? (item.verifiedSource as ChatPlaceCard['verifiedSource'])
+                    : null,
+                lastVerifiedAt:
+                  typeof item.lastVerifiedAt === 'string' ||
+                  item.lastVerifiedAt instanceof Date
+                    ? item.lastVerifiedAt
+                    : null,
               });
             }
           }

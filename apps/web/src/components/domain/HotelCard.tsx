@@ -1,42 +1,45 @@
-'use client'
+"use client"
+/** Pre-computed by the parent list from a single favorites query. When provided,
+ *  the card skips its own useFavoritesQuery() call entirely. */
 
-import * as React from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { MapPin, Star, Heart } from 'lucide-react'
-import type { HotelSummary } from '@/lib/types'
-import { formatEthiopianBirr } from '@/lib/currency'
-import { Badge } from '@/components/ui/Badge'
-import { useAuth } from '@/lib/auth-store'
-import { useToggleFavoriteMutation } from '@/hooks/use-catalog'
-import { toast } from '@/components/ui/Toast'
-import { useLanguage } from '@/lib/i18n'
+// Listing pages fetch favorites once and pass the result down. Keeping the
+// card presentational avoids creating one query observer per card.
+/* Image Container */ /* Using img with fallback safety */ /* Floating Heart Button */ /* Star Rating Badge */ /* Content Section */ /* Location */ /* Hotel Name */ /* Rating & Reviews */ /* Amenities Chips */ /* Pricing Section (Transparent Pricing Contract) */
+
+import * as React from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { MapPin, Star, Heart } from "lucide-react"
+import type { HotelSummary } from "@/lib/types"
+import { formatEthiopianBirr } from "@/lib/currency"
+import { useAuth } from "@/lib/auth-store"
+import { useToggleFavoriteMutation } from "@/hooks/use-catalog"
+import { toast } from "@/components/ui/Toast"
+import { useLanguage } from "@/lib/i18n"
 
 export interface HotelCardProps {
   hotel: HotelSummary
   stayNights?: number
   searchQuery?: string
   className?: string
-  /** Pre-computed by the parent list from a single favorites query. When provided,
-   *  the card skips its own useFavoritesQuery() call entirely. */
   isFavorite?: boolean
 }
 
-const FALLBACK_HOTEL_IMG = '/images/hotel-fallback.jpg'
+const FALLBACK_HOTEL_IMG = "/images/hotel-fallback.jpg"
 
 export function HotelCard({
   hotel,
   stayNights = 1,
-  searchQuery = '',
-  className = '',
+  searchQuery = "",
+  className = "",
   isFavorite: isFavoriteProp,
 }: HotelCardProps) {
   const { t } = useLanguage()
   const { user } = useAuth()
-  const [imgSrc, setImgSrc] = React.useState(hotel.primaryImageUrl || FALLBACK_HOTEL_IMG)
-
-  // Listing pages fetch favorites once and pass the result down. Keeping the
-  // card presentational avoids creating one query observer per card.
+  const [imgSrc, setImgSrc] = React.useState(
+    hotel.primaryImageUrl ||
+      FALLBACK_HOTEL_IMG,
+  )
   const toggleFavorite = useToggleFavoriteMutation()
   const isFavorite = isFavoriteProp ?? false
 
@@ -45,29 +48,34 @@ export function HotelCard({
     e.stopPropagation()
 
     if (!user) {
-      toast.info(t('hotel', 'signInRequiredTitle'), t('hotel', 'signInRequiredWishlistPropertyMsg'))
+      toast.info(
+        t("hotel", "signInRequiredTitle"),
+        t("hotel", "signInRequiredWishlistPropertyMsg"),
+      )
       return
     }
 
     toggleFavorite.mutate({ hotelId: hotel.id, isFavorite })
     toast.success(
-      isFavorite ? t('hotel', 'removedFromFavorites') : t('hotel', 'savedToFavorites'),
-      t('hotel', 'hotelUpdated', { name: hotel.name }),
+      isFavorite
+        ? t("hotel", "removedFromFavorites")
+        : t("hotel", "savedToFavorites"),
+      t("hotel", "hotelUpdated", { name: hotel.name }),
     )
   }
 
   const minPrice = hotel.minPricePerNight ?? 0
   const totalPrice = minPrice * stayNights
-  const hotelHref = `/hotel/${hotel.id}${searchQuery ? `?${searchQuery}` : ''}`
+  const hotelHref = `/hotel/${hotel.id}${searchQuery ? `?${searchQuery}` : ""}`
 
   return (
     <article
-      className={`group relative rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-[#0F2942]/20 transition-all duration-300 overflow-hidden flex flex-col ${className}`}
+      className={`group relative rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-[#0b1528]/20 transition-all duration-300 overflow-hidden flex flex-col ${className}`}
     >
-      {/* Image Container */}
+      {}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
         <Link href={hotelHref} tabIndex={-1}>
-          {/* Using img with fallback safety */}
+          {}
           <Image
             src={imgSrc}
             alt={hotel.name}
@@ -78,56 +86,66 @@ export function HotelCard({
           />
         </Link>
 
-        {/* Floating Heart Button */}
+        {}
         <button
           type="button"
           onClick={handleHeartClick}
-          aria-label={isFavorite ? t('hotel', 'removeHotelFromFavorites', { name: hotel.name }) : t('hotel', 'saveHotelToFavorites', { name: hotel.name })}
-          className="absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border border-white/40 flex items-center justify-center text-slate-700 hover:text-red-600 hover:bg-white transition-all shadow-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+          aria-label={
+            isFavorite
+              ? t("hotel", "removeHotelFromFavorites", { name: hotel.name })
+              : t("hotel", "saveHotelToFavorites", { name: hotel.name })
+          }
+          className="absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border border-white/40 flex items-center justify-center text-slate-700 hover:text-red-600 hover:bg-white transition-all shadow-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e4bd55]"
         >
           <Heart
             className={`w-5 h-5 transition-colors ${
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-700'
+              isFavorite ? "fill-red-500 text-red-500" : "text-slate-700"
             }`}
           />
         </button>
 
-        {/* Star Rating Badge */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-[#0F2942]/85 backdrop-blur-md px-2.5 py-1 rounded-xl text-white text-xs font-semibold">
-          <Star className="w-3.5 h-3.5 text-[#D4AF37] fill-[#D4AF37]" />
-          <span>{t('hotel', 'starsCount', { count: hotel.starRating })}</span>
+        {}
+        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-[#0b1528]/85 backdrop-blur-md px-2.5 py-1 rounded-xl text-white text-xs font-semibold">
+          <Star className="w-3.5 h-3.5 text-[#e4bd55] fill-[#e4bd55]" />
+          <span>{t("hotel", "starsCount", { count: hotel.starRating })}</span>
         </div>
       </div>
 
-      {/* Content Section */}
+      {}
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
-          {/* Location */}
+          {}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1.5">
-            <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#e4bd55] shrink-0" />
             <span className="truncate">
               {hotel.city?.name}, {hotel.city?.country?.name}
             </span>
           </div>
 
-          {/* Hotel Name */}
+          {}
           <Link href={hotelHref} className="focus-visible:outline-none">
-            <h3 className="font-serif text-lg sm:text-xl font-bold text-[#0F2942] group-hover:text-[#163859] transition-colors line-clamp-1">
+            <h3 className="font-serif text-lg sm:text-xl font-bold text-[#0b1528] group-hover:text-[#12233a] transition-colors line-clamp-1">
               {hotel.name}
             </h3>
           </Link>
 
-          {/* Rating & Reviews */}
+          {}
           <div className="flex items-center gap-2 mt-2">
-            <span className="px-2 py-0.5 rounded-lg bg-[#FEF9E7] text-[#92400E] border border-[#D4AF37]/30 text-xs font-bold">
-              {hotel.averageRating ? hotel.averageRating.toFixed(1) : t('hotel', 'newBadge')}
+            <span className="px-2 py-0.5 rounded-lg bg-[#FEF9E7] text-[#92400E] border border-[#e4bd55]/30 text-xs font-bold">
+              {hotel.averageRating
+                ? hotel.averageRating.toFixed(1)
+                : t("hotel", "newBadge")}
             </span>
             <span className="text-xs text-slate-500">
-              {hotel.reviewCount > 0 ? t('hotel', 'verifiedReviewsCount', { count: hotel.reviewCount }) : t('hotel', 'awaitingReviews')}
+              {hotel.reviewCount > 0
+                ? t("hotel", "verifiedReviewsCount", {
+                    count: hotel.reviewCount,
+                  })
+                : t("hotel", "awaitingReviews")}
             </span>
           </div>
 
-          {/* Amenities Chips */}
+          {}
           {hotel.amenities && hotel.amenities.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {hotel.amenities.slice(0, 3).map((amenity) => (
@@ -147,19 +165,27 @@ export function HotelCard({
           )}
         </div>
 
-        {/* Pricing Section (Transparent Pricing Contract) */}
+        {}
         <div className="mt-5 pt-4 border-t border-slate-100 flex items-end justify-between">
           <div>
             <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
-              {stayNights > 1 ? t('hotel', 'totalForNights', { nights: stayNights }) : t('hotel', 'startingNightlyRate')}
+              {stayNights > 1
+                ? t("hotel", "totalForNights", { nights: stayNights })
+                : t("hotel", "startingNightlyRate")}
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="font-serif text-xl font-bold text-[#0F2942]">
-                {minPrice > 0 ? formatEthiopianBirr(stayNights > 1 ? totalPrice : minPrice) : t('hotel', 'contactForRate')}
+              <span className="font-serif text-xl font-bold text-[#0b1528]">
+                {minPrice > 0
+                  ? formatEthiopianBirr(stayNights > 1 ? totalPrice : minPrice)
+                  : t("hotel", "contactForRate")}
               </span>
               {minPrice > 0 && (
                 <span className="text-xs text-slate-500">
-                  {stayNights > 1 ? t('hotel', 'perNightParens', { price: formatEthiopianBirr(minPrice) }) : t('hotel', 'perNightSlash')}
+                  {stayNights > 1
+                    ? t("hotel", "perNightParens", {
+                        price: formatEthiopianBirr(minPrice),
+                      })
+                    : t("hotel", "perNightSlash")}
                 </span>
               )}
             </div>
@@ -167,9 +193,9 @@ export function HotelCard({
 
           <Link
             href={hotelHref}
-            className="px-4 py-2 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-xs font-bold transition-all shadow-sm group-hover:shadow-md"
+            className="px-4 py-2 rounded-xl bg-[#0b1528] hover:bg-[#12233a] text-white text-xs font-bold transition-all shadow-sm group-hover:shadow-md"
           >
-            {t('hotel', 'viewSuites')}
+            {t("hotel", "viewSuites")}
           </Link>
         </div>
       </div>

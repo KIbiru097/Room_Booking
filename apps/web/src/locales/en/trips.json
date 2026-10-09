@@ -63,6 +63,7 @@
   "verifiedStops": "{stops} verified stops · {minutes} minutes",
   "estimated": "Estimated {amount}",
   "proposalMeta": "{time} · {minutes} min · {address}",
+  "notAvailable": "Not verified",
   "regenerate": "Regenerate",
   "confirmAddToTrip": "Confirm & Add to Trip",
   "addItineraryActivity": "Add Itinerary Activity",

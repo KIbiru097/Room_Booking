@@ -3,9 +3,13 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import DiscoverScreen from '../../screens/DiscoverScreen';
 
 jest.mock('react-native', () => {
-  const React = require('react');
-  const host = (name: string) => ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
-    React.createElement(name, props, children);
+  const React = jest.requireActual('react');
+  const host = (name: string) => {
+    const HostComponent = ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
+      React.createElement(name, props, children);
+    HostComponent.displayName = name;
+    return HostComponent;
+  };
   const FlatList = ({
     data,
     renderItem,
@@ -74,25 +78,29 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../../components/ScreenHeader', () => {
-  const React = require('react');
-  const { Text, View } = require('react-native');
+  const React = jest.requireActual('react');
+  const { Text, View } = jest.requireMock('react-native');
+  const MockScreenHeader = ({ title, subtitle }: { title: string; subtitle?: string }) =>
+    React.createElement(
+      View,
+      null,
+      React.createElement(Text, null, title),
+      subtitle ? React.createElement(Text, null, subtitle) : null,
+    );
+  MockScreenHeader.displayName = 'MockScreenHeader';
   return {
     __esModule: true,
-    default: ({ title, subtitle }: { title: string; subtitle?: string }) =>
-      React.createElement(
-        View,
-        null,
-        React.createElement(Text, null, title),
-        subtitle ? React.createElement(Text, null, subtitle) : null,
-      ),
+    default: MockScreenHeader,
   };
 });
 
 jest.mock('expo-image', () => {
-  const React = require('react');
-  const { View } = require('react-native');
+  const React = jest.requireActual('react');
+  const { View } = jest.requireMock('react-native');
+  const MockImage = (props: Record<string, unknown>) => React.createElement(View, props);
+  MockImage.displayName = 'MockImage';
   return {
-    Image: (props: Record<string, unknown>) => React.createElement(View, props),
+    Image: MockImage,
   };
 });
 

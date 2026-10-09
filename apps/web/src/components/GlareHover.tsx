@@ -1,6 +1,6 @@
-'use client'
+"use client" // force reflow
 
-import React, { useRef } from 'react'
+import React, { useRef } from "react"
 
 interface GlareHoverProps {
   children: React.ReactNode
@@ -14,8 +14,8 @@ interface GlareHoverProps {
 
 export default function GlareHover({
   children,
-  className = '',
-  glareColor = '#ffffff',
+  className = "",
+  glareColor = "#ffffff",
   glareOpacity = 0.3,
   glareAngle = -45,
   glareSize = 250,
@@ -23,7 +23,7 @@ export default function GlareHover({
 }: GlareHoverProps) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
 
-  const hex = glareColor.replace('#', '')
+  const hex = glareColor.replace("#", "")
   let rgba = glareColor
   if (/^[\dA-Fa-f]{6}$/.test(hex)) {
     const r = parseInt(hex.slice(0, 2), 16)
@@ -35,18 +35,18 @@ export default function GlareHover({
   const animateIn = () => {
     const el = overlayRef.current
     if (!el) return
-    el.style.transition = 'none'
-    el.style.backgroundPosition = '-100% -100%, 0 0'
-    void el.offsetWidth // force reflow
+    el.style.transition = "none"
+    el.style.backgroundPosition = "-100% -100%, 0 0"
+    void el.offsetWidth
     el.style.transition = `${transitionDuration}ms ease`
-    el.style.backgroundPosition = '100% 100%, 0 0'
+    el.style.backgroundPosition = "100% 100%, 0 0"
   }
 
   const animateOut = () => {
     const el = overlayRef.current
     if (!el) return
     el.style.transition = `${transitionDuration}ms ease`
-    el.style.backgroundPosition = '-100% -100%, 0 0'
+    el.style.backgroundPosition = "-100% -100%, 0 0"
   }
 
   return (
@@ -58,15 +58,15 @@ export default function GlareHover({
       <div
         ref={overlayRef}
         style={{
-          position: 'absolute',
+          position: "absolute",
           inset: 0,
           background: `linear-gradient(${glareAngle}deg, hsla(0,0%,0%,0) 60%, ${rgba} 70%, hsla(0,0%,0%,0) 100%)`,
           backgroundSize: `${glareSize}% ${glareSize}%, 100% 100%`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: '-100% -100%, 0 0',
-          pointerEvents: 'none',
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "-100% -100%, 0 0",
+          pointerEvents: "none",
           zIndex: 10,
-          borderRadius: 'inherit',
+          borderRadius: "inherit",
         }}
       />
       {children}

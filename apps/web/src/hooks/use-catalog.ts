@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { catalogService } from '@/services/catalog.service'
-import { CACHE_POLICIES } from '@/lib/query-client'
-import type { SearchHotelsQuery } from '@repo/shared-types'
-import { useAuth } from '@/lib/auth-store'
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { catalogService } from "@/services/catalog.service"
+import { CACHE_POLICIES } from "@/lib/query-client"
+import type { SearchHotelsQuery } from "@repo/shared-types"
+import { useAuth } from "@/lib/auth-store"
 
 export function useHotelSearchQuery(params?: Partial<SearchHotelsQuery>) {
   return useQuery({
-    queryKey: ['hotels', 'search', params],
+    queryKey: ["hotels", "search", params],
     queryFn: () => catalogService.searchHotels(params),
     ...CACHE_POLICIES.HOTEL_DETAILS,
   })
@@ -14,7 +14,7 @@ export function useHotelSearchQuery(params?: Partial<SearchHotelsQuery>) {
 
 export function useHotelQuery(id: string) {
   return useQuery({
-    queryKey: ['hotel', id],
+    queryKey: ["hotel", id],
     queryFn: () => catalogService.getHotelById(id),
     enabled: Boolean(id),
     ...CACHE_POLICIES.HOTEL_DETAILS,
@@ -23,10 +23,10 @@ export function useHotelQuery(id: string) {
 
 export function useHotelRoomsQuery(
   hotelId: string,
-  dates?: { startDate?: string; endDate?: string },
+  dates?: { startDate?: string ;endDate?: string },
 ) {
   return useQuery({
-    queryKey: ['hotel', hotelId, 'rooms', dates?.startDate, dates?.endDate],
+    queryKey: ["hotel", hotelId, "rooms", dates?.startDate, dates?.endDate],
     queryFn: () => catalogService.getHotelRooms(hotelId, dates),
     enabled: Boolean(hotelId),
     ...CACHE_POLICIES.AVAILABILITY, // 20s staleTime + window focus refetch
@@ -35,7 +35,7 @@ export function useHotelRoomsQuery(
 
 export function useHotelPolicyQuery(hotelId: string) {
   return useQuery({
-    queryKey: ['hotel', hotelId, 'policy'],
+    queryKey: ["hotel", hotelId, "policy"],
     queryFn: () => catalogService.getHotelPolicy(hotelId),
     enabled: Boolean(hotelId),
     ...CACHE_POLICIES.STATIC_CATALOG,
@@ -44,7 +44,7 @@ export function useHotelPolicyQuery(hotelId: string) {
 
 export function useCitiesQuery(country?: string) {
   return useQuery({
-    queryKey: ['catalog', 'cities', country],
+    queryKey: ["catalog", "cities", country],
     queryFn: () => catalogService.getCities(country),
     ...CACHE_POLICIES.STATIC_CATALOG,
   })
@@ -52,7 +52,7 @@ export function useCitiesQuery(country?: string) {
 
 export function useAmenitiesQuery() {
   return useQuery({
-    queryKey: ['catalog', 'amenities'],
+    queryKey: ["catalog", "amenities"],
     queryFn: () => catalogService.getAmenities(),
     ...CACHE_POLICIES.STATIC_CATALOG,
   })
@@ -60,7 +60,7 @@ export function useAmenitiesQuery() {
 
 export function useHotelReviewsQuery(hotelId: string, page = 1) {
   return useQuery({
-    queryKey: ['hotel', hotelId, 'reviews', page],
+    queryKey: ["hotel", hotelId, "reviews", page],
     queryFn: () => catalogService.getHotelReviews(hotelId, page),
     enabled: Boolean(hotelId),
     staleTime: 1000 * 60 * 5,
@@ -70,7 +70,7 @@ export function useHotelReviewsQuery(hotelId: string, page = 1) {
 export function useFavoritesQuery() {
   const user = useAuth((s) => s.user)
   return useQuery({
-    queryKey: ['favorites', 'mine'],
+    queryKey: ["favorites", "mine"],
     queryFn: () => catalogService.getFavorites(),
     enabled: Boolean(user),
     staleTime: 1000 * 60 * 5,
@@ -82,8 +82,14 @@ export function useToggleFavoriteMutation() {
   const user = useAuth((s) => s.user)
 
   return useMutation({
-    mutationFn: async ({ hotelId, isFavorite }: { hotelId: string; isFavorite: boolean }) => {
-      if (!user) throw new Error('Sign in required')
+    mutationFn: async ({
+      hotelId,
+      isFavorite,
+    }: {
+      hotelId: string
+      isFavorite: boolean
+    }) => {
+      if (!user) throw new Error("Sign in required")
       if (isFavorite) {
         await catalogService.removeFavorite(hotelId)
       } else {
@@ -92,14 +98,20 @@ export function useToggleFavoriteMutation() {
     },
     // Contract 2.E: Optimistic UI boundary permits wishlisting with error rollback
     onMutate: async ({ hotelId, isFavorite }) => {
-      await queryClient.cancelQueries({ queryKey: ['favorites', 'mine'] })
-      const previous = queryClient.getQueryData<any[]>(['favorites', 'mine'])
+      await queryClient.cancelQueries({ queryKey: ["favorites", "mine"] })
+      const previous = queryClient.getQueryData<any[]>(["favorites", "mine"])
 
       if (previous) {
         if (isFavorite) {
-          queryClient.setQueryData(['favorites', 'mine'], previous.filter((h) => h.id !== hotelId))
+          queryClient.setQueryData(
+            ["favorites", "mine"],
+            previous.filter((h) => h.id !== hotelId),
+          )
         } else {
-          queryClient.setQueryData(['favorites', 'mine'], [...previous, { id: hotelId }])
+          queryClient.setQueryData(["favorites", "mine"], [
+            ...previous,
+            { id: hotelId },
+          ])
         }
       }
 
@@ -107,11 +119,11 @@ export function useToggleFavoriteMutation() {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(['favorites', 'mine'], context.previous)
+        queryClient.setQueryData(["favorites", "mine"], context.previous)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['favorites', 'mine'] })
+      queryClient.invalidateQueries({ queryKey: ["favorites", "mine"] })
     },
   })
 }
@@ -120,7 +132,7 @@ export function useMyReviewsQuery() {
   const user = useAuth((s) => s.user)
 
   return useQuery({
-    queryKey: ['reviews', 'mine'],
+    queryKey: ["reviews", "mine"],
     queryFn: () => catalogService.getMyReviews(),
     enabled: Boolean(user),
     staleTime: 1000 * 60 * 2,
@@ -139,8 +151,8 @@ export function useCreateReviewMutation() {
       photos?: string[]
     }) => catalogService.createReview(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews'] })
-      queryClient.invalidateQueries({ queryKey: ['hotel'] })
+      queryClient.invalidateQueries({ queryKey: ["reviews"] })
+      queryClient.invalidateQueries({ queryKey: ["hotel"] })
     },
   })
 }
@@ -151,9 +163,8 @@ export function useDeleteReviewMutation() {
   return useMutation({
     mutationFn: (reviewId: string) => catalogService.deleteReview(reviewId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reviews'] })
-      queryClient.invalidateQueries({ queryKey: ['hotel'] })
+      queryClient.invalidateQueries({ queryKey: ["reviews"] })
+      queryClient.invalidateQueries({ queryKey: ["hotel"] })
     },
   })
 }
-

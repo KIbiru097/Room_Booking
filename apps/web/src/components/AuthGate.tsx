@@ -1,14 +1,20 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { useAuth } from '@/lib/auth-store'
-import { AccessDeniedView } from './layout/AccessDeniedView'
-import { Skeleton } from './ui/Skeleton'
+// Show zero-CLS skeleton placeholder during auth session rehydration
+
+// Not signed in
+
+// Signed in, but missing required role: render authoritative 403 view
+
+import * as React from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useAuth } from "@/lib/auth-store"
+import { AccessDeniedView } from "./layout/AccessDeniedView"
+import { Skeleton } from "./ui/Skeleton"
 
 export interface AuthGateProps {
   children: React.ReactNode
-  roles?: Array<'CUSTOMER' | 'STAFF' | 'MANAGER' | 'ADMIN' | string>
+  roles?: Array<"CUSTOMER" | "STAFF" | "MANAGER" | "ADMIN" | string>
 }
 
 export default function AuthGate({ children, roles }: AuthGateProps) {
@@ -24,8 +30,6 @@ export default function AuthGate({ children, roles }: AuthGateProps) {
       router.replace(`/auth?returnTo=${returnTo}`)
     }
   }, [user, isInitialized, pathname, router])
-
-  // Show zero-CLS skeleton placeholder during auth session rehydration
   if (!isInitialized) {
     return (
       <div className="min-h-[70vh] max-w-6xl mx-auto px-6 py-12 space-y-6">
@@ -39,13 +43,9 @@ export default function AuthGate({ children, roles }: AuthGateProps) {
       </div>
     )
   }
-
-  // Not signed in
   if (!user) {
     return null
   }
-
-  // Signed in, but missing required role: render authoritative 403 view
   if (roles && roles.length > 0 && !roles.includes(user.role)) {
     return <AccessDeniedView requiredRoles={roles} />
   }

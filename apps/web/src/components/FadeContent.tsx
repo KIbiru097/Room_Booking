@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { motion } from "framer-motion"
+import { useInView } from "framer-motion"
+import { useRef } from "react"
 
 interface FadeContentProps {
   children: React.ReactNode
@@ -10,24 +10,24 @@ interface FadeContentProps {
   delay?: number
   duration?: number
   blur?: boolean
-  direction?: 'up' | 'down' | 'none'
+  direction?: "up" | "down" | "none"
   distance?: number
 }
 
 export default function FadeContent({
   children,
-  className = '',
+  className = "",
   delay = 0,
   duration = 0.6,
   blur = false,
-  direction = 'up',
+  direction = "up",
   distance = 24,
 }: FadeContentProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '0px 0px -80px 0px' })
+  const isInView = useInView(ref, { once: true, margin: "0px 0px -80px 0px" })
 
   const initialY =
-    direction === 'up' ? distance : direction === 'down' ? -distance : 0
+    direction === "up" ? distance : direction === "down" ? -distance : 0
 
   return (
     <motion.div
@@ -35,13 +35,17 @@ export default function FadeContent({
       initial={{
         opacity: 0,
         y: initialY,
-        filter: blur ? 'blur(8px)' : 'blur(0px)',
+        filter: blur ? "blur(8px)" : "blur(0px)",
       }}
-      animate={isInView ? {
-        opacity: 1,
-        y: 0,
-        filter: 'blur(0px)',
-      } : undefined}
+      animate={
+        isInView
+          ? {
+              opacity: 1,
+              y: 0,
+              filter: "blur(0px)",
+            }
+          : undefined
+      }
       transition={{
         duration,
         delay,

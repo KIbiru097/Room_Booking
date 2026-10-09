@@ -18,6 +18,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentGatewayRegistry } from '../infrastructure/gateway-registry';
 import { getRequestId } from '../../../common/context/request-context';
 import { AuditService } from '../../../common/services/audit.service';
+import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import { FraudService } from '../../fraud/application/fraud.service';
 import { OtpService } from './otp.service';
 import { ChapaMockProvider } from '../infrastructure/gateways/chapa-mock.provider';
@@ -60,6 +61,8 @@ export class PaymentService {
     private readonly registry: PaymentGatewayRegistry,
     private readonly config: ConfigService,
     private readonly audit: AuditService,
+    @Optional()
+    private readonly scope?: ResourceScopeHelper,
     @Optional()
     private readonly fraud?: FraudService,
     @Optional()
@@ -374,18 +377,11 @@ export class PaymentService {
     }
 
     const hotelId = payment.booking.hotel.id;
-    if (actor.role === 'MANAGER') {
-      if (actor.hotelId !== hotelId) {
-        throw new ForbiddenException(
-          'You can only mark payments for your own hotel',
-        );
+    if (actor.role === 'MANAGER' || actor.role === 'STAFF') {
+      if (!this.scope) {
+        throw new ForbiddenException('Hotel access scope is unavailable');
       }
-    } else if (actor.role === 'STAFF') {
-      if (actor.hotelId !== hotelId) {
-        throw new ForbiddenException(
-          'You can only mark payments for your assigned hotel',
-        );
-      }
+      await this.scope.assertManagerOwnsHotel(actor.sub, actor.role, hotelId);
     } else if (actor.role !== 'ADMIN') {
       throw new ForbiddenException('Insufficient permissions');
     }
@@ -463,7 +459,7 @@ export class PaymentService {
       include: {
         booking: {
           include: {
-            hotel: { select: { managerId: true } },
+            hotel: { select: { id: true } },
           },
         },
       },
@@ -473,11 +469,22 @@ export class PaymentService {
     const isOwner =
       payment.booking.userId === actor.sub &&
       payment.booking.status === 'CANCELLED';
-    const isPlatformOperator = ['STAFF', 'ADMIN'].includes(actor.role);
-    const isHotelManager =
-      actor.role === 'MANAGER' && payment.booking.hotel.managerId === actor.sub;
-
-    if (!isOwner && !isPlatformOperator && !isHotelManager) {
+    // Staff retain the existing full-refund policy, but only after the
+    // hotel-scope check below proves they belong to this booking's hotel.
+    const isPlatformOperator = actor.role === 'ADMIN' || actor.role === 'STAFF';
+    let isHotelOperator = false;
+    if (actor.role === 'MANAGER' || actor.role === 'STAFF') {
+      if (!this.scope) {
+        throw new ForbiddenException('Hotel access scope is unavailable');
+      }
+      await this.scope.assertManagerOwnsHotel(
+        actor.sub,
+        actor.role,
+        payment.booking.hotel.id,
+      );
+      isHotelOperator = true;
+    }
+    if (!isOwner && !isPlatformOperator && !isHotelOperator) {
       throw new ForbiddenException('You cannot refund this booking');
     }
     if (payment.status === 'REFUNDED') {

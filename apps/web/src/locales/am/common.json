@@ -122,5 +122,20 @@
   "tryAgain": "እንደገና ሞክር",
   "closeDrawer": "ሳጥን ዝጋ",
   "closeModal": "መስኮቱን ዝጋ",
-  "dismissToast": "ማሳወቂያውን አስተርጉ"
+  "dismissToast": "ማሳወቂያውን አስተርጉ",
+  "darkMode": "የጨለማ ሁነታ",
+  "lightMode": "የብርሐን ሁነታ",
+  "footerTagline": "በመላው ኢትዮጵያ የተመረጡ የፍጹም ደረጃ ማረፊያዎች እና የአምስት ኮከብ ሪዞርቶች።",
+  "footerExplore": "ይጎብኙ",
+  "footerAccount": "መለያ",
+  "footerPortals": "ፖርታሎች",
+  "footerEmergency": "የአስቸኳይ መስመሮች",
+  "footerFavorites": "ተወዳጆቼ",
+  "footerPaymentHistory": "የክፍያ ታሪክ",
+  "footerPortalHint": "የሥራ አስኪያጅ፣ ሠራተኛ ወይም አስተዳዳሪ መለያ በማስገባት የቢሮ ፖርታሎችን ይክፈቱ።",
+  "footerRights": "መብቱ በሕግ የተጠበቀ ነው።",
+  "transportation": "መጓጓዣ",
+  "offlineNotice": "ከመስመር ውጭ ነዎት።",
+  "slowConnectionNotice": "የኢንተርኔት ግንኙነት ዝግ ነው።",
+  "cachedDataAvailable": "የተቀመጠ ጉዞ፣ ቦታ እና የደህንነት መረጃ ሊታይ ይችላል።"
 }

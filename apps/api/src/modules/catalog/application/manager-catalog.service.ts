@@ -121,30 +121,54 @@ export class ManagerCatalogService {
         ? dto.status
         : HotelStatus.PENDING_APPROVAL;
 
-    const hotel = await this.db.hotel.create({
-      data: {
-        name: dto.name,
-        description: dto.description,
-        cityId: dto.cityId,
-        address: dto.address,
-        lat: dto.lat,
-        lng: dto.lng,
-        starRating: dto.starRating ?? 3,
-        status: initialStatus,
-        managerId,
-      },
-      include: {
-        city: { include: { country: true } },
-        images: true,
-        policy: true,
-      },
-    });
+    let hotel;
+    try {
+      hotel = await this.db.hotel.create({
+        data: {
+          name: dto.name,
+          description: dto.description,
+          cityId: dto.cityId,
+          address: dto.address,
+          lat: dto.lat,
+          lng: dto.lng,
+          starRating: dto.starRating ?? 3,
+          status: initialStatus,
+          managerId,
+        },
+        include: {
+          city: { include: { country: true } },
+          images: true,
+          policy: true,
+        },
+      });
+    } catch (error) {
+      // The pre-flight count above is not enough under concurrent requests;
+      // the unique managerId constraint is the authoritative guard.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'This manager is already assigned to a hotel.',
+        );
+      }
+      throw error;
+    }
     await this.audit.record(actor.sub, 'hotel.create', 'Hotel', hotel.id, {
       name: hotel.name,
       status: hotel.status,
     });
     await this.cache.delPattern('hotel:search:*');
     return hotel;
+  }
+
+  async myHotel(actor: CatalogActor) {
+    if (actor.role !== 'MANAGER') {
+      throw new ForbiddenException(
+        'Only a manager can resolve a single owned hotel',
+      );
+    }
+    return this.scope.getManagerHotel(actor.sub);
   }
 
   async updateHotel(id: string, dto: UpdateHotelInput, actor: CatalogActor) {
@@ -725,14 +749,17 @@ export class ManagerCatalogService {
   }
 
   async releaseMaintenance(dto: ReleaseMaintenanceInput, actor: CatalogActor) {
-    const roomIds = dto.roomIds && dto.roomIds.length > 0
-      ? dto.roomIds
-      : dto.roomId
-        ? [dto.roomId]
-        : [];
+    const roomIds =
+      dto.roomIds && dto.roomIds.length > 0
+        ? dto.roomIds
+        : dto.roomId
+          ? [dto.roomId]
+          : [];
 
     if (!roomIds.length) {
-      throw new BadRequestException('No room specified for maintenance release');
+      throw new BadRequestException(
+        'No room specified for maintenance release',
+      );
     }
 
     for (const rid of roomIds) {
@@ -770,7 +797,9 @@ export class ManagerCatalogService {
   /** Normalize any date-like value to UTC midnight (YYYY-MM-DDT00:00:00.000Z) */
   private toUTCMidnight(value: Date | string): Date {
     const d = new Date(value);
-    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    return new Date(
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+    );
   }
 
   private async assertCanManage(
